@@ -1,0 +1,15 @@
+1.  see https://www.twilio.com/blog/2017/06/writing-a-node-module-in-typescript.html
+ about how to create a ts node module.
+2. Add "**/node_modules/*" to the exclude stanza of 'tsconfig.app.json'
+"exclude": [
+  "test.ts",
+  "**/*.spec.ts",
+  "**/node_modules/*"
+  ]
+
+3.  Add exclude stanz to 'app/tsconfig.spec.js':
+  "exclude": [
+    "**/node_modules/*",
+  ]
+
+3. run with 'npm run build'

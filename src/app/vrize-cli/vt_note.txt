@@ -1,0 +1,2 @@
+this directory and module 'vrize-cli' are defunct and replaced the the 'scr/cli' subdirectory.
+It should be ok to delete this directory.
