@@ -7,6 +7,7 @@ import { HttpClientTestingModule, HttpTestingController } from '@angular/common/
 import { log } from 'util';
 import { serializePath } from '@angular/router/src/url_tree';
 import { Injector } from '@angular/core/src/di/injector';
+import { HttpErrorResponse } from '@angular/common/http/src/response';
 
 let parserService: ParserService;
 let service : ParserService;
@@ -91,24 +92,46 @@ fdescribe('ParserService', () => {
   beforeAll((done) => {
     console.log(`ParserService.beforeAll: entered`);
     
-    // TestBed.configureTestingModule({
-    //   providers: [HttpClient]
-    // })
+    TestBed.configureTestingModule({
+      imports: [HttpClientModule],
+      // Note: we purposely do *not* provide an HttpHandler here.  If we do specify 'HttpHandler'
+      // then TestBed will provide a test HttpHandler for the HttpClient, and it doesn't have
+      // a 'handle' method, and the file read won't work.  We probably shouldn't have 'HttpClient'
+      // in here either, but it works anyway, so leave it in.
+      providers: [HttpClient]
+    })
+    // let httpHandler = TestBed.get(HttpHandler);
+    // let httpHandler = Injector.(HttpHandler);
+    let http = TestBed.get(HttpClient);
     let fn = '../../assets/test/examples/webvr_cubes.html';
-    fetch(fn, { method: 'get' })
-    .then((response) => {
-        let reader = response.body.getReader();
-        reader.read().then( (data) => {
-          var string = new (window as any).TextDecoder("utf-8").decode(data.value);
-          // console.log(`beforeAll.reader:string=${string}`);
-          scriptText1 = string;
-          // debugger;
-          done();
-        })
-        // debugger;
-        console.log(`ut.beforeAll:response=${response}`);
-        // done();
-    });
+    http.get(fn, {responseType: 'text'})
+    .subscribe(
+      data => {
+        console.log(data); 
+        scriptText1 = data;
+        done();
+      },
+      (err: HttpErrorResponse) => {
+        console.log('parseHtml: err=' + err, 'httperror=' + err.error);
+        done();
+      },
+      () => console.log('yay')
+    );
+    // fetch(fn, { method: 'get' })
+    // .then((response) => {
+    //     let reader = response.body.getReader();
+    //     // reader.on('readable', () => {
+    //       reader.read().then((data) => {
+    //         var string = new (window as any).TextDecoder("utf-8").decode(data.value);
+    //         // console.log(`beforeAll.reader:string=${string}`);
+    //         scriptText1 = string;
+    //         // debugger;
+    //         done();
+    //       })
+    //     // })
+    //     // debugger;
+    //     console.log(`ut.beforeAll:response=${response}`);
+    // });
   });
 
   beforeEach(() => {
@@ -165,7 +188,7 @@ fdescribe('ParserService', () => {
 
   // fit('getMainScript works', inject([ ParserService, HttpClient], 
   //   (service: ParserService, http: HttpClient, done ) => {
-  fit('extractMainScript works', () => { 
+  fit('extractMainScript works with a basic script', () => { 
     // ( done ) => {
     // console.log(`ut.getMainscript: entered`);
     
@@ -183,9 +206,37 @@ fdescribe('ParserService', () => {
     //     console.log(`ut.getMainScript:response=${response}`);
     //     // done();
     // });
-    let result = service.extractMainScript(scriptText1);
-    expect(result).toBeTruthy();
+    // create a simple dom object
+    let basicHtml = 
+    `<html>
+      <head>
+        <script src="../../build/three.js"></script>
+        <script>
+           var a=7;
+           init();
+           animate();
+        </script>
+      </head>
+      <body>
+      </body>
+    </html>
+    `
+    let parser = new DOMParser();
+    let doc = parser.parseFromString(basicHtml, "application/xml");
     // debugger;
+
+    let result = service.extractMainScript(doc);
+    let text = result.text;
+    let scriptIndex = result.scriptIndex;
+
+    expect(text).toBeTruthy();
+    expect(typeof text).toEqual("string");
+    expect(text).toMatch(/var a=7/gm);
+    expect(scriptIndex).toEqual(1);
+
+    let parentEl = doc.querySelectorAll('script')[scriptIndex];
+    service.appendWebVrScript(parentEl);
+    debugger;
     // globalHttp.get(fn, {responseType: 'text'})
     // http.get(fn, {responseType: 'text'})
     // .subscribe(
@@ -201,6 +252,19 @@ fdescribe('ParserService', () => {
     //   () => console.log('yay')
     // );
   });
+
+  it('extractMainScript works with a real script', () => { 
+    let parser = new DOMParser();
+    let doc = parser.parseFromString(scriptText1, "text/html");
+    let result = service.extractMainScript(doc);
+    let text = result.text;
+    let scriptIndex = result.scriptIndex;
+    expect(text).toBeTruthy();
+    expect(typeof text).toEqual("string");
+    // line 63 of the script
+    expect(text).toMatch(/crosshair = new THREE.Mesh/gm);
+    expect(scriptIndex).toEqual(2);
+  })
 
   /*
   fit('parseHtml properly parses', inject([ParserService, HttpClient, HttpTestingController], 

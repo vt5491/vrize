@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClientModule, HttpClient, HttpHandler } from '@angular/common/http';
 import { log } from 'util';
+import { Node, Element } from '@angular/compiler';
 
 
 @Injectable()
@@ -30,6 +31,58 @@ export class ParserService {
 
   }
 
+
+  // try to identify the "main" script of the html dom
+  extractMainScript(doc) {
+    // debugger;
+    let scriptEls = doc.getElementsByTagName('script')
+
+    // loop through all script elements and assume the one with the biggest 
+    // innerHtml is the "main" script.
+    let candScriptEl = null;
+    let foundCand = false;
+    let maxLen = 0;
+
+    for (let i = 0; i < scriptEls.length; i++) {
+      let scriptLen = scriptEls[i].innerHTML.length;
+
+      if (scriptLen > maxLen) {
+        candScriptEl = i;
+        foundCand = true;
+      }
+    }
+
+    // foundCand ? return scriptEls[candScriptEl].innerHtml : return null;
+    let result = {text: null, scriptIndex: null};
+
+    if( foundCand) {
+      result.text = scriptEls[candScriptEl].innerHTML;
+      result.scriptIndex = candScriptEl;
+    }
+
+    return result;
+    // // console.log(`ParserService.extractMainScript: text=${text}`);
+    // // var re : RegExp = /<script>.*</script>/gm;
+    // var re = new RegExp('<script.*>.*</script>', 'gm');
+    // // var s = text;
+    // var m;
+
+    // // debugger
+    // do {
+    //   m = re.exec(text);
+    //   // debugger;
+    //   if (m) {
+    //       console.log(m[0]);
+    //   }
+    // } while (m);
+  }
+
+  appendWebVrScript(parentNode: HTMLElement) {
+    let el = document.createElement('script')
+
+    parentNode.appendChild(el);
+  }
+  
   // return a parse lookup table, where the key represents some major portion of the 
   // program text e.g 'html', or 'mainScript' and the value is the string text for that
   // particular portion.
@@ -37,25 +90,6 @@ export class ParserService {
     let parseLookup = {};
 
     return parseLookup;
-
-  }
-
-  extractMainScript(text) {
-    // console.log(`ParserService.extractMainScript: text=${text}`);
-    // var re : RegExp = /<script>.*</script>/gm;
-    var re = new RegExp('<script.*>.*</script>', 'gm');
-    // var s = text;
-    var m;
-
-    // debugger
-    do {
-      m = re.exec(text);
-      debugger;
-      if (m) {
-          console.log(m[0]);
-      }
-  } while (m);
-    
 
   }
 
