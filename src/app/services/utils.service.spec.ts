@@ -9,7 +9,7 @@ import { log } from 'util';
 
 // beforeEach(() => { TestBed.configureTestingModule({ declarations: [ AppComponent ], imports: [ RouterTestingModule ] });
 
-fdescribe('UtilsService', () => {
+describe('UtilsService', () => {
   beforeEach(() => {
     TestBed.configureTestingModule({
       providers: [UtilsService, HttpClient, HttpHandler],

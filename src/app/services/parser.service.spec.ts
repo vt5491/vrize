@@ -1,7 +1,6 @@
 import { TestBed, inject, async } from '@angular/core/testing';
 
 import { ReflectiveInjector } from '@angular/core';
-import { ParserService } from './parser.service';
 import { HttpClientModule, HttpClient, HttpHandler } from '@angular/common/http';
 import { HttpClientTestingModule, HttpTestingController } from '@angular/common/http/testing';
 import { log } from 'util';
@@ -9,86 +8,25 @@ import { serializePath } from '@angular/router/src/url_tree';
 import { Injector } from '@angular/core/src/di/injector';
 import { HttpErrorResponse } from '@angular/common/http/src/response';
 
+import { ParserService } from './parser.service';
+import { BaseService } from './base.service';
+import { UtilsService } from './utils.service';
+
 let parserService: ParserService;
 let service : ParserService;
 let httpMock: HttpTestingController;
 let globalHttp: HttpClient;
 let http: HttpClient;
-let scriptText1 : string;
-/*
-// function getAnnotations(typeOrFunc: Type<any>): any[]|null {
-function getAnnotations(typeOrFunc: any): any[]|null {
-  // Prefer the direct API.
-  if ((<any>typeOrFunc).annotations) {
-    let annotations = (<any>typeOrFunc).annotations;
-    if (typeof annotations === 'function' && annotations.annotations) {
-      annotations = annotations.annotations;
-    }
-    return annotations;
-  }
+let base : BaseService;
+// webvr_cubes.html is an example of a script that is already 'vr-ized'.  Thus it can serve
+// as an example of a script that should *not* be altered by any vr-izing methods. 
+let webvr_cubes_html : string;
+let webgl_geometry_cube_html : string;
+let testScriptText : string;
+let basicHtml : string;
+let parser : DOMParser;
 
-  // API of tsickle for lowering decorators to properties on the class.
-  if ((<any>typeOrFunc).decorators) {
-    return convertTsickleDecoratorIntoMetadata((<any>typeOrFunc).decorators);
-  }
-
-  // API for metadata created by invoking the decorators.
-  // if (Reflect && Reflect.getOwnMetadata) {
-  //   return Reflect.getOwnMetadata('annotations', typeOrFunc);
-  // }
-  return null;
-}
-
-function convertTsickleDecoratorIntoMetadata(decoratorInvocations: any[]): any[] {
-  if (!decoratorInvocations) {
-    return [];
-  }
-  return decoratorInvocations.map(decoratorInvocation => {
-    const decoratorType = decoratorInvocation.type;
-    const annotationCls = decoratorType.annotationCls;
-    const annotationArgs = decoratorInvocation.args ? decoratorInvocation.args : [];
-    return new annotationCls(...annotationArgs);
-  });
-}
-
-const injector = ReflectiveInjector.resolveAndCreate(getAnnotations(HttpClientModule)[0].providers);
-const httpInjected = injector.get(HttpClient);
-// const injector = ReflectiveInjector.resolveAndCreate([
-//   Http,
-//   BrowserXhr,
-//   {provide: RequestOptions, useClass: BaseRequestOptions},
-//   {provide: ResponseOptions, useClass: BaseResponseOptions},
-//   {provide: ConnectionBackend, useClass: XHRBackend},
-//   {provide: XSRFStrategy, useFactory: () => new CookieXSRFStrategy()},
-// ]);
-// const http = injector.get(Http);
-
-
-  let testScript1 : string;
-  // helper function.  Read
-  // function readTestScript() {
-
-  // }
-  beforeAll( (done) => {
-    console.log(`ut.beforeAll: entered`);
-    let fn = '../../assets/test/examples/webvr_cubes.html';
-
-    // let injector = new Injector();
-    // let http = injector.get(HttpClient);
-    // let http = new HttpClient( new HttpHandler());
-    httpInjected.get(fn, {responseType: 'text'})
-    .subscribe(
-      data => {
-        console.log(`beforeAll:data=${data}`);
-        done();
-      },
-      err => console.log('parseHtml: err=' + err),
-      () => console.log('yay')
-    );
-  })
-  */
-
-fdescribe('ParserService', () => {
+describe('ParserService', () => {
   beforeAll((done) => {
     console.log(`ParserService.beforeAll: entered`);
     
@@ -103,12 +41,13 @@ fdescribe('ParserService', () => {
     // let httpHandler = TestBed.get(HttpHandler);
     // let httpHandler = Injector.(HttpHandler);
     let http = TestBed.get(HttpClient);
-    let fn = '../../assets/test/examples/webvr_cubes.html';
+    // read 'webgl_geometry_cube.html' as a test for a non-vr-ized file.
+    let fn = '../../assets/test/examples/webgl_geometry_cube.html';
     http.get(fn, {responseType: 'text'})
     .subscribe(
       data => {
-        console.log(data); 
-        scriptText1 = data;
+        // console.log(`webgl_geometry_cube.html=${data}`);
+        webgl_geometry_cube_html = data;
         done();
       },
       (err: HttpErrorResponse) => {
@@ -117,21 +56,37 @@ fdescribe('ParserService', () => {
       },
       () => console.log('yay')
     );
-    // fetch(fn, { method: 'get' })
-    // .then((response) => {
-    //     let reader = response.body.getReader();
-    //     // reader.on('readable', () => {
-    //       reader.read().then((data) => {
-    //         var string = new (window as any).TextDecoder("utf-8").decode(data.value);
-    //         // console.log(`beforeAll.reader:string=${string}`);
-    //         scriptText1 = string;
-    //         // debugger;
-    //         done();
-    //       })
-    //     // })
-    //     // debugger;
-    //     console.log(`ut.beforeAll:response=${response}`);
-    // });
+
+    // read 'webvr_cubes.html' as a test for a already vr-ized file.
+    fn = '../../assets/test/examples/webvr_cubes.html';
+    http.get(fn, {responseType: 'text'})
+    .subscribe(
+      data => {
+        // console.log(data); 
+        webvr_cubes_html = data;
+        done();
+      },
+      (err: HttpErrorResponse) => {
+        console.log('parseHtml: err=' + err, 'httperror=' + err.error);
+        done();
+      },
+      () => console.log('yay')
+    );
+
+    basicHtml = 
+    `<html>
+      <head>
+        <script src="../../build/three.js"></script>
+        <script>
+           var a=7;
+           init();
+           animate();
+        </script>
+      </head>
+      <body>
+      </body>
+    </html>
+    `
   });
 
   beforeEach(() => {
@@ -143,14 +98,21 @@ fdescribe('ParserService', () => {
         HttpClientTestingModule
       ],
       // providers: [ParserService, HttpClient, HttpHandler, HttpClientTestingModule, HttpTestingController]
-      providers: [ParserService, HttpClient, HttpTestingController]
+      providers: [ParserService, HttpClient, HttpTestingController, BaseService]
     });
     // get our services here, instead of injecting directy into the signature of the it function.
     parserService = TestBed.get(ParserService);
+    base = TestBed.get(BaseService);
     service = parserService; // alias
     httpMock = TestBed.get(HttpTestingController);
     globalHttp = TestBed.get(HttpClient);
     http = globalHttp; // alias
+
+    parser = new DOMParser();
+
+    // some methods alter the script text, so we need to make a test copy we can alter 
+    // the string each time.
+    testScriptText = webgl_geometry_cube_html;
   });
 
   // fit('should be created', inject([ParserService], (service: ParserService) => {
@@ -159,20 +121,6 @@ fdescribe('ParserService', () => {
     expect(parserService).toBeTruthy();
   });
 
-  // it('should return error if country request failed', (done) => {
-  //   parserService.parseHtml('abc')
-  //                  .subscribe((res: any) => {
-  //                    expect(res.failure.error.type).toBe('ERROR_LOADING_COUNTRIES');
-  //                    done();
-  //                  });
-
-  //   // let countryRequest = httpMock.expectOne('./assets/countries.json');
-  //   // countryRequest.error(new ErrorEvent('ERROR_LOADING_COUNTRIES'));
-
-  //   // httpMock.verify();
-  // });
-
-  // it('parseHtml works', inject([ParserService], (service: ParserService) => {
   it('parseHtml works',  () => {
     // expect(service).toBeTruthy();
     let htmlText = `
@@ -188,139 +136,111 @@ fdescribe('ParserService', () => {
 
   // fit('getMainScript works', inject([ ParserService, HttpClient], 
   //   (service: ParserService, http: HttpClient, done ) => {
-  fit('extractMainScript works with a basic script', () => { 
-    // ( done ) => {
-    // console.log(`ut.getMainscript: entered`);
-    
-    // let fn = '../../assets/test/examples/webvr_cubes.html';
-    // fetch(fn, { method: 'get' })
-    // .then((response) => {
-    //     let reader = response.body.getReader();
-    //     reader.read().then( (data) => {
-    //       var string = new (window as any).TextDecoder("utf-8").decode(data.value);
-    //       console.log(`reader:string=${string}`);
-    //       // debugger;
-    //       done();
-    //     })
-    //     // debugger;
-    //     console.log(`ut.getMainScript:response=${response}`);
-    //     // done();
-    // });
+  it('findMainScript works with a basic script', () => { 
     // create a simple dom object
-    let basicHtml = 
-    `<html>
-      <head>
-        <script src="../../build/three.js"></script>
-        <script>
-           var a=7;
-           init();
-           animate();
-        </script>
-      </head>
-      <body>
-      </body>
-    </html>
-    `
     let parser = new DOMParser();
     let doc = parser.parseFromString(basicHtml, "application/xml");
     // debugger;
 
-    let result = service.extractMainScript(doc);
-    let text = result.text;
-    let scriptIndex = result.scriptIndex;
+    let result = service.findMainScript(doc);
+    // let text = result.text;
+    // let scriptIndex = result.scriptIndex;
+    let scriptIndex = result;
+    let text = doc.getElementsByTagName('script')[scriptIndex].innerHTML;
 
     expect(text).toBeTruthy();
     expect(typeof text).toEqual("string");
     expect(text).toMatch(/var a=7/gm);
     expect(scriptIndex).toEqual(1);
 
-    let parentEl = doc.querySelectorAll('script')[scriptIndex];
-    service.appendWebVrScript(parentEl);
-    debugger;
-    // globalHttp.get(fn, {responseType: 'text'})
-    // http.get(fn, {responseType: 'text'})
-    // .subscribe(
-    //   data => {
-    //     debugger;
-    //     console.log(`ut.getMainScript:data=${data}`);
-    //     done();
-    //   },
-    //   err => {
-    //     console.log('ut.getMainScript: err=' + err);
-    //     done();
-    //   },
-    //   () => console.log('yay')
-    // );
+    // let parentEl = doc.querySelectorAll('script')[scriptIndex];
+    // service.appendWebVrScript(parentEl);
   });
 
-  it('extractMainScript works with a real script', () => { 
+  it('findMainScript works with a full html', () => { 
     let parser = new DOMParser();
-    let doc = parser.parseFromString(scriptText1, "text/html");
-    let result = service.extractMainScript(doc);
-    let text = result.text;
-    let scriptIndex = result.scriptIndex;
+    let doc = parser.parseFromString(webgl_geometry_cube_html, "text/html");
+    let scriptIndex = service.findMainScript(doc);
+    // debugger;
+    // let scriptEls = doc.getElementsByTagName('script');
+    // let script = scriptEls[scriptIndex];
+    // let text = script.innerHTML;
+    let text = doc.getElementsByTagName('script')[scriptIndex].innerHTML;
+    // let text = ((doc.getElementsByName('script'))[scriptIndex]).innerHTML;
+    //let script = 
+    // let scriptIndex = result.scriptIndex;
     expect(text).toBeTruthy();
     expect(typeof text).toEqual("string");
     // line 63 of the script
-    expect(text).toMatch(/crosshair = new THREE.Mesh/gm);
-    expect(scriptIndex).toEqual(2);
+    // expect(text).toMatch(/crosshair = new THREE.Mesh/gm);
+    // line 29 of script
+    expect(text).toMatch(/camera.position.z = 400/);
+
+    expect(scriptIndex).toEqual(1);
   })
 
-  /*
-  fit('parseHtml properly parses', inject([ParserService, HttpClient, HttpTestingController], 
-    (service: ParserService, http: HttpClient, httpMock: HttpTestingController) => {
-    let fn = '../../assets/test/examples/webvr_cubes.html';
-    console.log('now in parseHtml test driver');
-    // let fn = './parser.service.ts';
-    async(
-      // 2. inject HttpClient and HttpTestingController into the test
-      inject([HttpClient, HttpTestingController], (http: HttpClient, backend: HttpTestingController) => {
-        console.log('now in async');
-        // 3. send a simple request
-        // http.get('/foo/bar').subscribe();
-        http.get(fn).subscribe();
+  it('findThreeJsScript works with basicHtml', () => { 
+    let parser = new DOMParser();
+    let doc = parser.parseFromString(basicHtml, "text/html");
 
-        // 4. HttpTestingController supersedes `MockBackend` from the "old" Http package
-        // here two, it's significantly less boilerplate code needed to verify an expected request
-        backend.expectOne({
-          url: fn,
-          method: 'GET'
-        });
-      })
-    )
+    let scriptIndex = service.findThreeJsScript(doc);
 
-    http
-    .get(fn)
-    .subscribe(data => expect(data['name']).toEqual('Test Data'));
+    let text = doc.getElementsByTagName('script')[scriptIndex].getAttribute('src');
+    expect(text).toBeTruthy();
+    expect(typeof text).toEqual("string");
+    expect(text).toMatch(/three\.js/gm);
+    expect(scriptIndex).toEqual(0);
+  });
 
-    const req = httpMock.expectOne(fn);
+  it('findThreeJsScript works with full html', () => { 
+    let doc = parser.parseFromString(webgl_geometry_cube_html, "text/html");
 
-    expect(req.request.method).toEqual('GET');
-    
-     // Next, fulfill the request by transmitting a response.
-     req.flush({name: 'Test Data'});
-    
-    //  // Finally, assert that there are no outstanding requests.
-    //  httpMock.verify();
+    let scriptIndex = service.findThreeJsScript(doc);
 
-    // http.get(fn, {responseType: 'text'})
-    //  .subscribe(data => {
-    //    console.log('now in subscribe handler');
-    //    console.log(data);
-    //  },
-    //  err => {
-    //    console.log(`err=${err}`);
-    //  }
-    // );
-    // http.get(fn, {responseType: 'text'})
-    // .subscribe(
-    //   data => console.log(data),
-    //   err => console.log(err),
-    //   () => console.log('yay')
-    // );
-    // service.parseHtml('<html></html>');
+    let text = doc.getElementsByTagName('script')[scriptIndex].getAttribute('src');
+    expect(text).toBeTruthy();
+    expect(typeof text).toEqual("string");
+    expect(text).toMatch(/three\.js/gm);
+    expect(scriptIndex).toEqual(0);
+  });
 
-  }));
-  */
+  it('addWebVrScript properly adds after the three.js script tag', () => { 
+    // normally this method will rely on results from 'findThreeJsScript', but in order
+    // to keep this a unit test and not an integration test, we will manually prime
+    // the three.js index pos.
+    let simpleHtml = 
+    `<html>
+      <head>
+        <script src="dummy"></script>
+        <script src="three.js"></script>
+      </head>
+    </html>`
+
+    let doc = parser.parseFromString(simpleHtml, "text/html");
+    let scriptCnt = 2;
+    expect(doc.getElementsByTagName('script').length).toEqual(scriptCnt);
+
+    let threeJsScriptIndex = 1;
+
+    let result = service.addWebVrScript(doc, threeJsScriptIndex);
+
+    let scriptEls = doc.getElementsByTagName('script');
+    expect(scriptEls.length).toEqual(scriptCnt + 1);
+
+    // verify the three.js is unaffected 
+    scriptEls[threeJsScriptIndex].getAttribute('src').match(/three\.js/);
+    // and the script tag after it is webVr.
+    scriptEls[threeJsScriptIndex + 1].getAttribute('src').match(/js\/vr\/WebVR.js/);
+
+  })
+
+  fit('addVrRenderer properly adds a comment sandwich and the line "renderer.vr.enabled = true;"', () => { 
+    let result = service.addVrRenderer(testScriptText);
+
+    console.log(`base.begincomment=${base.markupCommentBegin}`);
+    // expect(testScriptText).toMatch(/renderer\.vr\.enabled = true;/gm);
+    // expect(testScriptText).toMatch(/renderer\.vr\.enabled = true;/gm);
+  })
+
 });
 

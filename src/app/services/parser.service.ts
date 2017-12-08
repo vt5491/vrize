@@ -33,7 +33,7 @@ export class ParserService {
 
 
   // try to identify the "main" script of the html dom
-  extractMainScript(doc) {
+  findMainScript(doc) {
     // debugger;
     let scriptEls = doc.getElementsByTagName('script')
 
@@ -53,11 +53,13 @@ export class ParserService {
     }
 
     // foundCand ? return scriptEls[candScriptEl].innerHtml : return null;
-    let result = {text: null, scriptIndex: null};
+    // let result = {text: null, scriptIndex: null};
+    let result = null;
 
     if( foundCand) {
-      result.text = scriptEls[candScriptEl].innerHTML;
-      result.scriptIndex = candScriptEl;
+      // result.text = scriptEls[candScriptEl].innerHTML;
+      // result.scriptIndex = candScriptEl;
+      result = candScriptEl;
     }
 
     return result;
@@ -77,10 +79,45 @@ export class ParserService {
     // } while (m);
   }
 
-  appendWebVrScript(parentNode: HTMLElement) {
-    let el = document.createElement('script')
+  // find the index of the three.js script (so we can concatenate webvr after it)
+  findThreeJsScript(doc) {
+    // debugger;
+    let scriptEls = doc.getElementsByTagName('script')
 
-    parentNode.appendChild(el);
+    // loop through all script elements and regex on the 'src=three.js'
+    let candScriptEl = null;
+    let foundCand = false;
+
+    for (let i = 0; i < scriptEls.length; i++) {
+      // if( scriptEls[i].innerHTML.match(/\/three\.js/)) {
+      if (scriptEls[i].getAttribute('src').match(/three\.js/) ) {
+        foundCand = true;
+        candScriptEl = i;
+        break;
+      }
+    };
+
+    let result = foundCand ? candScriptEl : null;
+
+    return result;
+  }
+
+  // addWebVrScript(parentNode: HTMLElement) {
+  addWebVrScript(doc: Document, threeJsScriptIndex: number) {
+    let el = document.createElement('script');
+    el.setAttribute('src', 'js/vr/WebVR.js');
+
+    // parentNode.appendChild(el);
+    doc.getElementsByTagName('script')[threeJsScriptIndex].appendChild(el);
+  }
+
+  // script parsing
+
+  // add line 'renderer.vr.enabled = true;' after the renderer init statement in the script
+  addVrRenderer(scriptText: string) : string {
+
+    return scriptText;
+
   }
   
   // return a parse lookup table, where the key represents some major portion of the 
