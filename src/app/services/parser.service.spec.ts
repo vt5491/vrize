@@ -18,18 +18,21 @@ let httpMock: HttpTestingController;
 let globalHttp: HttpClient;
 let http: HttpClient;
 let base : BaseService;
+let utils : UtilsService;
 // webvr_cubes.html is an example of a script that is already 'vr-ized'.  Thus it can serve
 // as an example of a script that should *not* be altered by any vr-izing methods. 
 let webvr_cubes_html : string;
 let webgl_geometry_cube_html : string;
 let testScriptText : string;
 let basicHtml : string;
+let simpleScriptText : string;
 let parser : DOMParser;
 
 describe('ParserService', () => {
   beforeAll((done) => {
     console.log(`ParserService.beforeAll: entered`);
     
+    // TestBed.resetTestEnvironment();
     TestBed.configureTestingModule({
       imports: [HttpClientModule],
       // Note: we purposely do *not* provide an HttpHandler here.  If we do specify 'HttpHandler'
@@ -38,11 +41,19 @@ describe('ParserService', () => {
       // in here either, but it works anyway, so leave it in.
       providers: [HttpClient]
     })
+    // TestBed.configureTestingModule({
+    //   imports: [
+    //     HttpClientTestingModule
+    //   ],
+    //   // providers: [ParserService, HttpClient, HttpHandler, HttpClientTestingModule, HttpTestingController]
+    //   providers: [ParserService, HttpClient, HttpTestingController, BaseService, UtilsService]
+    // });
     // let httpHandler = TestBed.get(HttpHandler);
     // let httpHandler = Injector.(HttpHandler);
     let http = TestBed.get(HttpClient);
     // read 'webgl_geometry_cube.html' as a test for a non-vr-ized file.
-    let fn = '../../assets/test/examples/webgl_geometry_cube.html';
+    // let fn = '../../assets/test/examples/unix_style/webgl_geometry_cube.html';
+    let fn = '../../assets/test/examples/windows_style/webgl_geometry_cube.html';
     http.get(fn, {responseType: 'text'})
     .subscribe(
       data => {
@@ -54,24 +65,27 @@ describe('ParserService', () => {
         console.log('parseHtml: err=' + err, 'httperror=' + err.error);
         done();
       },
-      () => console.log('yay')
+      () => {
+        //TODO: put calls for other files here and put the 'done()' call in the last of the chain
+        console.log('yay')
+      }
     );
 
-    // read 'webvr_cubes.html' as a test for a already vr-ized file.
-    fn = '../../assets/test/examples/webvr_cubes.html';
-    http.get(fn, {responseType: 'text'})
-    .subscribe(
-      data => {
-        // console.log(data); 
-        webvr_cubes_html = data;
-        done();
-      },
-      (err: HttpErrorResponse) => {
-        console.log('parseHtml: err=' + err, 'httperror=' + err.error);
-        done();
-      },
-      () => console.log('yay')
-    );
+    // // read 'webvr_cubes.html' as a test for a already vr-ized file.
+    // fn = '../../assets/test/examples/webvr_cubes.html';
+    // http.get(fn, {responseType: 'text'})
+    // .subscribe(
+    //   data => {
+    //     // console.log(data); 
+    //     webvr_cubes_html = data;
+    //     done();
+    //   },
+    //   (err: HttpErrorResponse) => {
+    //     console.log('parseHtml: err=' + err, 'httperror=' + err.error);
+    //     done();
+    //   },
+    //   () => console.log('yay')
+    // );
 
     basicHtml = 
     `<html>
@@ -87,22 +101,32 @@ describe('ParserService', () => {
       </body>
     </html>
     `
+
+    simpleScriptText = 
+    `
+    tick: function(t, dt) {
+      innerGame.innerWebGLRenderer = new THREE.WebGLRenderer({ antialias: true });
+      var a = 7;
+      document.body.appendChild( innerGame.innerWebGLRenderer.domElement );
+    }
+    `
   });
 
   beforeEach(() => {
-  // beforeAll(() => {
     console.log(`ut.beforeEach: entered`);
     
+    // TestBed.resetTestEnvironment();
     TestBed.configureTestingModule({
       imports: [
         HttpClientTestingModule
       ],
       // providers: [ParserService, HttpClient, HttpHandler, HttpClientTestingModule, HttpTestingController]
-      providers: [ParserService, HttpClient, HttpTestingController, BaseService]
+      providers: [ParserService, HttpClient, HttpTestingController, BaseService, UtilsService]
     });
     // get our services here, instead of injecting directy into the signature of the it function.
     parserService = TestBed.get(ParserService);
     base = TestBed.get(BaseService);
+    utils = TestBed.get(UtilsService);
     service = parserService; // alias
     httpMock = TestBed.get(HttpTestingController);
     globalHttp = TestBed.get(HttpClient);
@@ -114,6 +138,10 @@ describe('ParserService', () => {
     // the string each time.
     testScriptText = webgl_geometry_cube_html;
   });
+
+  // afterEach(() => {
+  //   TestBed.resetTestingModule();
+  // });
 
   // fit('should be created', inject([ParserService], (service: ParserService) => {
   it('should be created',  () => {
@@ -134,8 +162,6 @@ describe('ParserService', () => {
     // debugger;
   });
 
-  // fit('getMainScript works', inject([ ParserService, HttpClient], 
-  //   (service: ParserService, http: HttpClient, done ) => {
   it('findMainScript works with a basic script', () => { 
     // create a simple dom object
     let parser = new DOMParser();
@@ -234,13 +260,51 @@ describe('ParserService', () => {
 
   })
 
-  fit('addVrRenderer properly adds a comment sandwich and the line "renderer.vr.enabled = true;"', () => { 
-    let result = service.addVrRenderer(testScriptText);
+  it('addVrRenderer properly adds a comment sandwich and the line "renderer.vr.enabled = true;"', () => { 
+    let result = service.addVrRenderer(simpleScriptText);
 
-    console.log(`base.begincomment=${base.markupCommentBegin}`);
-    // expect(testScriptText).toMatch(/renderer\.vr\.enabled = true;/gm);
+    // console.log(`base.begincomment=${base.markupCommentBegin}`);
+    // expect(result).toMatch(/renderer\.vr\.enabled = true;/gm);
+    let newText = service.getVrRendererTemplate('innerGame.innerWebGLRenderer');
+    let insertText = utils.commentSandwich(newText);
+    let re = new RegExp(insertText, "gm");
+
+    expect(result['newText']).toMatch(re);
+    expect(result['rendererName']).toEqual('innerGame.innerWebGLRenderer');
     // expect(testScriptText).toMatch(/renderer\.vr\.enabled = true;/gm);
   })
+
+  it('addVrRenderer works on a real script', () => { 
+    let result = service.addVrRenderer(testScriptText);
+
+    let newText = service.getVrRendererTemplate('renderer');
+    let insertText = utils.commentSandwich(newText);
+    let re = new RegExp(insertText, "gm");
+
+    expect(result['newText']).toMatch(re);
+    expect(result['rendererName']).toEqual('renderer');
+    // expect(testScriptText).toMatch(/renderer\.vr\.enabled = true;/gm);
+    console.log(`ut:addVrRenderer: result=${result}`);
+    
+  })
+
+  it('addVrButton works on a basic script', () => { 
+    let rendererName = 'innerGame.innerWebGLRenderer';
+    let appendEl = 'document.body';
+    let result = service.addVrButton(simpleScriptText, rendererName);
+
+    let newText = service.getVrButtonTemplate(appendEl, rendererName);
+    let insertText = utils.commentSandwich(newText);
+    //Don't know why I have to escape it in the ut, but not in the main code..
+    insertText = insertText.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&')
+    console.log(`ut:insertText=${insertText}`);
+    
+    let re = new RegExp(insertText, "m");
+
+    expect(result).toMatch(re, 'm');
+    console.log(`ut:result=${result}`);
+    // debugger;
+  });
 
 });
 

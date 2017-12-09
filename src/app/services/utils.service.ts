@@ -5,10 +5,12 @@ import { Observable } from 'rxjs/Observable';
 import { log } from 'util';
 import { Subscription } from 'rxjs/Subscription';
 
+import { BaseService } from './base.service';
+
 @Injectable()
 export class UtilsService {
 
-  constructor(private http: HttpClient) { }
+  constructor(private base: BaseService, private http: HttpClient) { }
 
   // return the (program) text contained in the specified file.
   getText(fn : string): Observable<any> {
@@ -23,6 +25,13 @@ export class UtilsService {
             //    console.log('now in subscribe handler');
             //    console.log(data);
             //  });
+  }
+
+  commentSandwich(text : string) : string {
+    let beginTag = this.base.markupCommentBegin;
+    let endTag = this.base.markupCommentEnd;
+
+    return `${beginTag}\n${text}\n${endTag}`;
   }
 
   // }

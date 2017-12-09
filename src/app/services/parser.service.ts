@@ -3,27 +3,20 @@ import { HttpClientModule, HttpClient, HttpHandler } from '@angular/common/http'
 import { log } from 'util';
 import { Node, Element } from '@angular/compiler';
 
+import { BaseService } from './base.service';
+import { UtilsService } from './utils.service';
+
 
 @Injectable()
 export class ParserService {
 
-  constructor(private http: HttpClient) { }
+  constructor(private base: BaseService, private utils: UtilsService, private http: HttpClient) { }
 
   // Parse the html into a dom, so we can subsquently extract things such as the main
   // script.
   parseHtml(html : string) : Document {
     console.log(`ParserService.parseHtml: entered`);
     
-    // let fn = './parser.service.ts';
-    // let fn = '../../assets/test/examples/webvr_cubes.html';
-    // this.http.get(fn, {responseType: 'text'})
-    // .subscribe(
-    //   data => console.log(data),
-    //   err => console.log('parseHtml: err=' + err),
-    //   () => console.log('yay')
-    // );
-
-    // return this.http.get(fn, {responseType: 'text'});
     var parser = new DOMParser();
     var doc = parser.parseFromString(html, "application/xml");
 
@@ -114,12 +107,85 @@ export class ParserService {
   // script parsing
 
   // add line 'renderer.vr.enabled = true;' after the renderer init statement in the script
-  addVrRenderer(scriptText: string) : string {
+  addVrRenderer(text: string) : object {
+    // find the renderer init line in the script 
+    // let m = text.match(/(\n)(.*new THREE\.WebGLRenderer.*)(\n)/m);
+    let m = text.match(/([a-zA-z0-9_\.]+)(\s*=\s*)(new THREE\.WebGLRenderer.*)/m);
+    // debugger;
 
-    return scriptText;
+    // pass the renderer variable name and get actual variable-specific insert text
+    let rendererName = m[1];
+    let vrRendererLine = this.getVrRendererTemplate(rendererName);
+    let insertText = this.utils.commentSandwich(vrRendererLine);
+
+    //TODO: double escape special vars in string
+    // actually..don't need to do because it's in the replace string
+    let newText = text.replace(/.*new THREE\.WebGLRenderer.*/m, `$&\n${insertText}\n`);
+    // debugger;
+    
+    // return newText;
+    return {newText: newText, rendererName: rendererName};
+
+  }
+
+  // Return the string to be inserted by 'addVrRenderer'.  If a renderer name is passed, this
+  // will be substituted in the template.  If no string is passed, then the paramaterized string
+  // will passed raw, such that the client can substitute a value.
+  getVrRendererTemplate(renderer? : string) : string {
+    // return '&renderer.vr.enabled = true;';
+    let templateStr = '{{renderer}}.vr.enabled = true;';
+
+    if (renderer) {
+      templateStr = templateStr.replace(/{{renderer}}/, renderer);
+    }
+
+    return templateStr;
+  }
+
+  addVrButton(text: string, rendererName: string) {
+    // extract the dom element we need to append to
+    // let re = new RegExp(`([a-zA-z0-9_\.]+)\.appendChild\(\s*${rendererName}\.domElement\s*\)`, 'm');
+    let re = new RegExp(`([a-zA-z0-9_\.]+)\\.appendChild\\(\\s*${rendererName}\\.domElement\\s*\\)`, 'm');
+    // let re = new RegExp('([a-zA-z0-9_\.]+)\.appendChild\(\s*' + rendererName + '\.domElement\s*\)', 'm');
+    // let re = new RegExp('([a-zA-z0-9_\.]+)\.appendChild\(\s*' + rendererName + '\.domElement\s*\)', 'm');
+    // let reStr = '([a-zA-z0-9_\.]+)\.appendChild\(\s*' + rendererName + '\.domElement\s*\)';
+    // let reStr = 'appendChild(' + rendererName + ')';
+    // let re = new RegExp( reStr, 'm');
+
+    let m = text.match(re);
+    let elName = m[1];
+    // let m = text.match(/([a-zA-z0-9_\.]+)(\s*=\s*)(new THREE\.WebGLRenderer.*)/m);
+    // let newText = text.replace(/.*new THREE\.WebGLRenderer.*/m, `$&\n${insertText}\n`);
+    // pass the append element name and get actual variable-specific insert text
+    let vrButtonLine = this.getVrButtonTemplate(elName, rendererName);
+    let insertText = this.utils.commentSandwich(vrButtonLine);
+
+    // let newText = text.replace(/.*new THREE\.WebGLRenderer.*/m, `$&\n${insertText}\n`);
+    // let re2 = new RegExp(`${elName}\.appendChild\(\s*${rendererName}\.domELement\s*\)`);
+    let re2 = new RegExp(`${elName}\\.appendChild\\(\\s*${rendererName}\\.domElement\\s*\\)`, 'm');
+    // let newText = text.replace(re2, 
+    //   `$&\n${elName}\.appendChild\(WEBVR.createButton\(${rendererName}\)\);\n`);
+    let newText = text.replace(re2, `$&\n${insertText}\n`);
+
+    // debugger;
+
+    return newText;
 
   }
   
+  getVrButtonTemplate(appendEl : string ,renderer : string) : string {
+    // let templateStr = '{{appendEl}}.appendChild\(WEBVR.createButton\({{renderer}}\)\);';
+    // let templateStr = '{{appendEl}}.appendChild\\(WEBVR.createButton\\({{renderer}}\\)\\);';
+    let templateStr = '{{appendEl}}.appendChild(WEBVR.createButton({{renderer}}));';
+
+    // if (renderer) {
+    templateStr = templateStr.replace(/{{appendEl}}/, appendEl);
+    templateStr = templateStr.replace(/{{renderer}}/, renderer);
+    // }
+
+    return templateStr;
+  }
+
   // return a parse lookup table, where the key represents some major portion of the 
   // program text e.g 'html', or 'mainScript' and the value is the string text for that
   // particular portion.

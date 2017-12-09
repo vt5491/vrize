@@ -4,12 +4,13 @@ import { log } from 'util';
 @Injectable()
 export class BaseService {
 
-  markupCommentBegin : string;
-  markupCommentEnd : string;
+  public markupCommentBegin : string;
+  public markupCommentEnd : string;
 
   constructor() { 
     this.markupCommentBegin = "// vrize add";
     this.markupCommentEnd = "// vrize end";
+    
     
   }
 

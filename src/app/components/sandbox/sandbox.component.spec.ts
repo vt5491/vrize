@@ -2,6 +2,7 @@ import { async, ComponentFixture, TestBed } from '@angular/core/testing';
 import { HttpClientModule, HttpClient, HttpHandler } from '@angular/common/http';
 
 import { SandboxComponent } from './sandbox.component';
+import { BaseService } from '../../services/base.service';
 import { UtilsService } from '../../services/utils.service';
 import { ParserService } from '../../services/parser.service';
 
@@ -12,7 +13,7 @@ describe('SandboxComponent', () => {
   beforeEach(async(() => {
     TestBed.configureTestingModule({
       declarations: [ SandboxComponent ],
-      providers: [ UtilsService, HttpClient, HttpHandler, ParserService]
+      providers: [ BaseService, UtilsService, HttpClient, HttpHandler, ParserService]
     })
     .compileComponents();
   }));
@@ -21,6 +22,10 @@ describe('SandboxComponent', () => {
     fixture = TestBed.createComponent(SandboxComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
+  });
+  
+  afterEach(() => {
+    TestBed.resetTestingModule();
   });
 
   it('should create', () => {

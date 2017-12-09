@@ -5,21 +5,38 @@ import { Observable } from 'rxjs/Observable';
 import {RouterTestingModule} from '@angular/router/testing'
 
 import { UtilsService } from './utils.service';
+import { BaseService } from './base.service';
 import { log } from 'util';
 
 // beforeEach(() => { TestBed.configureTestingModule({ declarations: [ AppComponent ], imports: [ RouterTestingModule ] });
 
+let service : UtilsService;
+let base : BaseService;
+
 describe('UtilsService', () => {
   beforeEach(() => {
     TestBed.configureTestingModule({
-      providers: [UtilsService, HttpClient, HttpHandler],
+      providers: [UtilsService, BaseService, HttpClient, HttpHandler],
       imports: [RouterTestingModule]
     });
+    service = TestBed.get(UtilsService);
+    base = TestBed.get(BaseService);
   });
+
+
 
   it('should be created', inject([UtilsService], (service: UtilsService) => {
     expect(service).toBeTruthy();
   }));
+
+  it('commentSandwich put the passed text between "start" and "end" comments', () => {
+    let result = service.commentSandwich("abc");
+
+    let beginTag = base.markupCommentBegin;
+    let endTag = base.markupCommentEnd;
+
+    expect(result).toEqual(`${beginTag}\nabc\n${endTag}`);
+  })
 
   // it('getFileText abc.html works', inject([UtilsService, HttpClient], 
   //     (service: UtilsService, http: HttpClient) => {
