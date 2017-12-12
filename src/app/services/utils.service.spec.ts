@@ -13,7 +13,7 @@ import { log } from 'util';
 let service : UtilsService;
 let base : BaseService;
 
-describe('UtilsService', () => {
+fdescribe('UtilsService', () => {
   beforeEach(() => {
     TestBed.configureTestingModule({
       providers: [UtilsService, BaseService, HttpClient, HttpHandler],
@@ -35,9 +35,19 @@ describe('UtilsService', () => {
     let beginTag = base.markupCommentBegin;
     let endTag = base.markupCommentEnd;
 
-    expect(result).toEqual(`${beginTag}\nabc\n${endTag}`);
+    // expect(result).toEqual(`${beginTag}\nabc\n${endTag}`);
   })
 
+  it('alterSandwich put the passed text between "start" and "end" comments', () => {
+    let result = service.alterSandwich("abc");
+
+    let beginTag = base.markupAlterBegin;
+    let endTag = base.markupAlterEnd;
+
+    expect(result).toEqual(`${beginTag}\nabc\n${endTag}`);
+    console.log(`result=${result}`);
+    
+  })
   // it('getFileText abc.html works', inject([UtilsService, HttpClient], 
   //     (service: UtilsService, http: HttpClient) => {
   // // it('getFileText abc.html works', inject([UtilsService, HttpClient], 

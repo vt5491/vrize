@@ -18,7 +18,7 @@ export class ParserService {
     console.log(`ParserService.parseHtml: entered`);
     
     var parser = new DOMParser();
-    var doc = parser.parseFromString(html, "application/xml");
+    var doc = parser.parseFromString(html, "text/html");
 
     return doc;
 
@@ -26,7 +26,10 @@ export class ParserService {
 
 
   // try to identify the "main" script of the html dom
-  findMainScript(doc) {
+  // return the index of the main script.  Note, this does not return the text of the
+  // script itself.  If the caller wants the text of the script they will have to do
+  // a doc.scripts[index].innerHTML or some such call.
+  findMainScript(doc) : string {
     // debugger;
     let scriptEls = doc.getElementsByTagName('script')
 
@@ -184,6 +187,38 @@ export class ParserService {
     // }
 
     return templateStr;
+  }
+
+  //
+  addVrAnimateFn(text: string) : string {
+    let newText = '';
+    // rename any prior 'animate' fn to 'render'
+    newText = text.replace(/(function\s+)(animate)/m, 
+      `${this.base.markupAlterBegin}\n$1render\n${this.base.markupAlterEnd}`);
+    // debugger;
+
+    // insert the the vr animate fn
+    let insertText = this.getVrAnimateFnTemplate();
+    insertText = this.utils.commentSandwich(insertText);
+
+    newText = newText + insertText;
+
+    //comment out any 'requestAnimationFrame'
+    newText = newText.replace(/[^\n]*requestAnimationFrame[^\n]*/m, 
+      `${this.base.markupCommentOutBegin}\n//$&\n${this.base.markupCommentOutEnd}`);
+    // debugger;
+    // newText = newText.replace(/(\n)(^\s*requestAnimationFrame)/m, `//$1`);
+
+    return newText;
+  }
+
+  getVrAnimateFnTemplate() : string {
+    return `
+function animate() {
+  renderer.animate(render);
+};
+`
+
   }
 
   // return a parse lookup table, where the key represents some major portion of the 

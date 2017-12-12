@@ -1,4 +1,4 @@
-import { TestBed, inject, async } from '@angular/core/testing';
+import { TestBed, inject, async, resetFakeAsyncZone } from '@angular/core/testing';
 
 import { ReflectiveInjector } from '@angular/core';
 import { HttpClientModule, HttpClient, HttpHandler } from '@angular/common/http';
@@ -23,12 +23,14 @@ let utils : UtilsService;
 // as an example of a script that should *not* be altered by any vr-izing methods. 
 let webvr_cubes_html : string;
 let webgl_geometry_cube_html : string;
+let testScriptHtml : string;
 let testScriptText : string;
+let testScriptDoc : Document;
 let basicHtml : string;
 let simpleScriptText : string;
 let parser : DOMParser;
 
-describe('ParserService', () => {
+fdescribe('ParserService', () => {
   beforeAll((done) => {
     console.log(`ParserService.beforeAll: entered`);
     
@@ -104,10 +106,21 @@ describe('ParserService', () => {
 
     simpleScriptText = 
     `
-    tick: function(t, dt) {
+    function init() {
       innerGame.innerWebGLRenderer = new THREE.WebGLRenderer({ antialias: true });
       var a = 7;
       document.body.appendChild( innerGame.innerWebGLRenderer.domElement );
+    }
+
+    function animate() {
+      
+      requestAnimationFrame( animate );
+      
+      mesh.rotation.x += 0.005;
+      mesh.rotation.y += 0.01;
+      
+      renderer.render( scene, camera );
+      
     }
     `
   });
@@ -136,7 +149,16 @@ describe('ParserService', () => {
 
     // some methods alter the script text, so we need to make a test copy we can alter 
     // the string each time.
-    testScriptText = webgl_geometry_cube_html;
+    testScriptHtml = webgl_geometry_cube_html;
+
+    // technically, anything that uses this is an integration test, since we're assuming
+    // that 'findMainScript' and 'parseHtml' are working properly.
+    testScriptDoc = service.parseHtml(testScriptHtml);
+    let testScriptIndex = service.findMainScript(testScriptDoc);
+    testScriptText = testScriptDoc.scripts[testScriptIndex].innerHTML;
+    // debugger;
+    // console.log(`testScriptText=${testScriptText}`);
+    
   });
 
   // afterEach(() => {
@@ -271,11 +293,11 @@ describe('ParserService', () => {
 
     expect(result['newText']).toMatch(re);
     expect(result['rendererName']).toEqual('innerGame.innerWebGLRenderer');
-    // expect(testScriptText).toMatch(/renderer\.vr\.enabled = true;/gm);
+    // expect(testScriptHtml).toMatch(/renderer\.vr\.enabled = true;/gm);
   })
 
   it('addVrRenderer works on a real script', () => { 
-    let result = service.addVrRenderer(testScriptText);
+    let result = service.addVrRenderer(testScriptHtml);
 
     let newText = service.getVrRendererTemplate('renderer');
     let insertText = utils.commentSandwich(newText);
@@ -283,7 +305,7 @@ describe('ParserService', () => {
 
     expect(result['newText']).toMatch(re);
     expect(result['rendererName']).toEqual('renderer');
-    // expect(testScriptText).toMatch(/renderer\.vr\.enabled = true;/gm);
+    // expect(testScriptHtml).toMatch(/renderer\.vr\.enabled = true;/gm);
     console.log(`ut:addVrRenderer: result=${result}`);
     
   })
@@ -296,7 +318,8 @@ describe('ParserService', () => {
     let newText = service.getVrButtonTemplate(appendEl, rendererName);
     let insertText = utils.commentSandwich(newText);
     //Don't know why I have to escape it in the ut, but not in the main code..
-    insertText = insertText.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&')
+    // insertText = insertText.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&')
+    insertText = utils.escapeText(insertText);
     console.log(`ut:insertText=${insertText}`);
     
     let re = new RegExp(insertText, "m");
@@ -305,6 +328,54 @@ describe('ParserService', () => {
     console.log(`ut:result=${result}`);
     // debugger;
   });
+
+  fit('addVrAnimateFn works with a simple script', () => {
+    let result = service.addVrAnimateFn(simpleScriptText);
+    // debugger;
+    let expectedText = service.getVrAnimateFnTemplate();
+    // expectedText = expectedText.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&')
+    expectedText = utils.escapeText(expectedText)
+
+    let re = new RegExp(`\n\s*${expectedText}\s*\n`, 'gm');
+    // let re = new RegExp(`{expectedText}`, 'gm');
+
+    let ms = result.match(re);
+
+    expect(ms.length).toEqual(1);
+
+    // verify the original animate function is renamed to 'render'
+    // let animateCommentOutRe = new RegExp(`//\s*function animate`, 'm');
+    let renderRe = new RegExp(/\n\s*function render/, 'm');
+    expect(result).toMatch(renderRe);
+
+    // verify 'requestAnimationFrame is commented out
+    let rafRe= new RegExp(/\/\/\s*requestAnimationFrame/);
+    expect(result).toMatch(rafRe);
+  })
+
+  fit('addVrAnimateFn works on a real script', () => {
+    let result = service.addVrAnimateFn(testScriptText);
+
+    let expectedText = service.getVrAnimateFnTemplate();
+    expectedText = utils.escapeText(expectedText)
+
+    let re = new RegExp(`\n\s*${expectedText}\s*\n`, 'gm');
+
+    let ms = result.match(re);
+
+    expect(ms.length).toEqual(1);
+
+    // verify the original animate function is renamed to 'render'
+    let renderRe = new RegExp(/\n\s*function render/, 'm');
+    expect(result).toMatch(renderRe);
+
+    // verify 'requestAnimationFrame is commented out
+    let rafRe= new RegExp(/\/\/\s*requestAnimationFrame/);
+    expect(result).toMatch(rafRe);
+
+    // console.log(`result=${result}`);
+
+  })
 
 });
 

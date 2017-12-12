@@ -34,6 +34,26 @@ export class UtilsService {
     return `${beginTag}\n${text}\n${endTag}`;
   }
 
+  commentOutSandwich(text : string) : string {
+    let beginTag = this.base.markupCommentOutBegin;
+    let endTag = this.base.markupCommentOutEnd;
+
+    return `${beginTag}\n//${text}\n${endTag}`;
+  }
+
+  alterSandwich(text : string) : string {
+    let beginTag = this.base.markupAlterBegin;
+    let endTag = this.base.markupAlterEnd;
+
+    return `${beginTag}\n${text}\n${endTag}`;
+  }
+
+
+  // escape special chars with a '\', which is necessary with regexes in some cases.
+  escapeText(text) : string { 
+    return text.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
+  }
+
   // }
   // public getJSON(): Observable<any> {
   //   return this.http.get("./file.json")

@@ -5,4 +5,8 @@ export class TransformerService {
 
   constructor() { }
 
+  liftHtml (doc: Document) {
+    
+  }
+
 }
