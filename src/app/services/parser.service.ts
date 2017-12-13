@@ -29,7 +29,7 @@ export class ParserService {
   // return the index of the main script.  Note, this does not return the text of the
   // script itself.  If the caller wants the text of the script they will have to do
   // a doc.scripts[index].innerHTML or some such call.
-  findMainScript(doc) : string {
+  findMainScript(doc) : number {
     // debugger;
     let scriptEls = doc.getElementsByTagName('script')
 

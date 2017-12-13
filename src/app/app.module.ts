@@ -8,17 +8,21 @@ import { SandboxComponent } from './components/sandbox/sandbox.component';
 import { BaseService } from './services/base.service';
 import { UtilsService } from './services/utils.service';
 import { ParserService } from './services/parser.service';
+import { TransformerService } from './services/transformer.service';
+import { ConvertComponent } from './components/convert/convert.component';
 
 const appRoutes:Routes = [
-  {path: '', component: SandboxComponent},
+  {path: '', component: ConvertComponent},
   {path: 'sandbox', component: SandboxComponent},
+  {path: 'convert', component: ConvertComponent},
 ];
 
 
 @NgModule({
   declarations: [
     AppComponent,
-    SandboxComponent
+    SandboxComponent,
+    ConvertComponent
   ],
   imports: [
     BrowserModule,
@@ -28,7 +32,8 @@ const appRoutes:Routes = [
   providers: [
     UtilsService,
     BaseService,
-    ParserService
+    ParserService,
+    TransformerService
   ],
   bootstrap: [AppComponent]
 })

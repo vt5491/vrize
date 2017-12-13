@@ -1,0 +1,25 @@
+textarea {
+  width : 85%;
+  /* colour: blue;
+  background-color: yellow;
+  border: 1px solid black; */
+}
+
+/* #vrize-it { */
+.controls {
+  /* text-align: center;
+  margin: 0 auto; */
+  border-width: 2px;
+  width: 85%;
+  color : blue;
+  display: flex;
+  justify-content: center;
+}
+
+#inputText {
+  border-width: thin;
+  width : 85%;
+  height: 200px;
+  /* border:1px solid black; */
+  border: 2px solid black
+}

@@ -1,0 +1,7 @@
+2017-12-11
+the unix_style is for scripts that are using unix eol semantics, namely
+0x'0a' (newlines only), and the 'windows_style' is for windows eol semantics,
+name '0d0a'.  Turns out on windows machines, the scripts all have windows semantics
+in spite of the fact that the browser works fine with both semantics.  I'm primarily
+testing with unix_style semantics, which means that if you put a file under 'unix_style'
+make sure you run 'dos2unix' against first, if seeding under windows.

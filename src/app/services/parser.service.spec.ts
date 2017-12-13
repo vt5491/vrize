@@ -30,7 +30,7 @@ let basicHtml : string;
 let simpleScriptText : string;
 let parser : DOMParser;
 
-fdescribe('ParserService', () => {
+describe('ParserService', () => {
   beforeAll((done) => {
     console.log(`ParserService.beforeAll: entered`);
     
@@ -329,7 +329,7 @@ fdescribe('ParserService', () => {
     // debugger;
   });
 
-  fit('addVrAnimateFn works with a simple script', () => {
+  it('addVrAnimateFn works with a simple script', () => {
     let result = service.addVrAnimateFn(simpleScriptText);
     // debugger;
     let expectedText = service.getVrAnimateFnTemplate();
@@ -353,7 +353,7 @@ fdescribe('ParserService', () => {
     expect(result).toMatch(rafRe);
   })
 
-  fit('addVrAnimateFn works on a real script', () => {
+  it('addVrAnimateFn works on a real script', () => {
     let result = service.addVrAnimateFn(testScriptText);
 
     let expectedText = service.getVrAnimateFnTemplate();
