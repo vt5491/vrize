@@ -16,10 +16,10 @@ textarea {
   justify-content: center;
 }
 
-#inputText {
+#inputText, #outputText {
   border-width: thin;
   width : 85%;
   height: 200px;
   /* border:1px solid black; */
-  border: 2px solid black
+  border: 1px solid black
 }

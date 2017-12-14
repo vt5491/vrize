@@ -1,36 +1,58 @@
 import { Component, OnInit } from '@angular/core';
+import {NgForm} from '@angular/forms';
 
 import { TransformerService } from '../../services/transformer.service';
+import { ParserService } from '../../services/parser.service';
 
 @Component({
   selector: 'app-convert',
   templateUrl: './convert.component.html',
   styleUrls: ['./convert.component.css']
 })
-export class ConvertComponent implements OnInit {
 
-  constructor(private transformer: TransformerService) { }
+export class ConvertComponent implements OnInit {
+  inputDoc: Document;
+  outputText: string;
+
+  constructor(
+    private transformer: TransformerService,
+    private parser: ParserService) {
+
+  }
 
   ngOnInit() {
   }
 
-  userConvert(e : Event) {
-  // userConvert(inputText : string) {
+  onSubmit(f: NgForm) {
+    console.log(`Convert.onSubmit: entered, f.value=${f.controls.inputText.value}`);
+    // debugger;
+    this.userConvert(f.controls.inputText.value);
+    // let mainScriptIdx = this.parser.findMainScript(this.inputDoc);
+    // f.controls.outputText.value = this.inputDoc.scripts[mainScriptIdx];
+    this.outputText = new XMLSerializer().serializeToString(this.inputDoc);
+    console.log(`outputText=${this.outputText}`);
+    // f.controls.outputText.value = this.outputText;
+    // debugger;
+  }
+  // userConvert(e : Event) {
+  userConvert(inputText : string) {
     // console.log(`Convert.userConvert: e=${e});
     // console.log(`Convert.userConvert: inputText=${inputText}`);
     // console.log(`Convert.userConvert: inputText.value=${inputText.value}`);
     // let el = document.querySelector('#inputText');
     // let inputHtml = el.innerHTML;
+    let inputHtml = inputText;
     // console.log(`Convert.userConvert: inputText.value=${el.innerHTML}`);
+    console.log(`Convert.userConvert: inputText.value=${inputText}`);
     //
     let domParser = new DOMParser();
 
-    // let inputDoc = domParser.parseFromString(inputHtml, "text/html");
-    let inputDoc = domParser.parseFromString(this.inputString, "text/html");
+    this.inputDoc = domParser.parseFromString(inputHtml, "text/html");
+    // let inputDoc = domParser.parseFromString(this.inputString, "text/html");
 
-    this.transformer.liftDoc(inputDoc);
+    this.transformer.liftDoc(this.inputDoc);
 
-    console.log(`userConvert: output=${inputDoc.scripts[3].innerHTML}`);
+    // console.log(`userConvert: output=${inputDoc.scripts[3].innerHTML}`);
 
   }
 

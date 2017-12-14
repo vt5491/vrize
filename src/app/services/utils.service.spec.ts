@@ -13,7 +13,7 @@ import { log } from 'util';
 let service : UtilsService;
 let base : BaseService;
 
-fdescribe('UtilsService', () => {
+describe('UtilsService', () => {
   beforeEach(() => {
     TestBed.configureTestingModule({
       providers: [UtilsService, BaseService, HttpClient, HttpHandler],

@@ -1,19 +1,26 @@
 <div class='controls'>
-  <button id='vrize-it' (click)="userConvert()">Convert File</button>
 </div>
 <div>
-Input:
-<br/>
-  <!-- <textarea id='inputText' rows="4" cols="50"> -->
-  <div id='inputText' contenteditable="true">
-Enter mixed html/javascript file contents here...
-  </div>
-<!-- </textarea> -->
-</div>
-<div>
-<p>
-Output:
-<br/>
-  <textarea id='inputText' rows="4" cols="50">
-</textarea>
+  <!-- <form id='input-form' (ngSubmit)="onSubmit()"> -->
+  <form id='input-form' #f='ngForm' (ngSubmit)="onSubmit(f)">
+    <!-- <button id='vrize-it' type='submit' (click)="userConvert()">Convert File 2</button> -->
+    <!-- <button id='vrize-it' type='submit' >Convert File 4</button><br/> -->
+    <button id='vrize-it' >Convert File 4</button><br/>
+    Input:
+    <br/>
+    <textarea id='inputText' name="inputText" ngModel rows="4" cols="50">
+      <!-- <div id='inputText' contenteditable="true">
+      Enter mixed html/javascript file contents here...
+    </div> -->
+  </textarea>
+  <div>
+    <p>
+      Output:
+      <br/>
+      <!-- <textarea id='outputText' name='outputText' ngModel="outputText" rows="4" cols="50"> -->
+      <!-- <textarea id='outputText' name='outputText' rows="4" cols="50"> -->
+      <textarea id='outputText' name='outputText' [ngModel]="outputText" rows="4" cols="50">
+      </textarea>
+    </div>
+  </form>
 </div>

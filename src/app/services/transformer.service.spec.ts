@@ -34,7 +34,7 @@ let domParser = new DOMParser();
 
 let basicDoc : Document;
 
-fdescribe('TransformerService', () => {
+describe('TransformerService', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
@@ -57,7 +57,7 @@ fdescribe('TransformerService', () => {
   it ('liftDoc properly transforms', () => {
     let result : Document= service.liftDoc(basicDoc);
 
-    debugger;
+    // debugger;
     expect(result.nodeName).toMatch('#document');
   })
 });

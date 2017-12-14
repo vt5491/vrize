@@ -252,7 +252,7 @@ describe('ParserService', () => {
     expect(scriptIndex).toEqual(0);
   });
 
-  it('addWebVrScript properly adds after the three.js script tag', () => { 
+  fit('addWebVrScript properly adds after the three.js script tag', () => { 
     // normally this method will rely on results from 'findThreeJsScript', but in order
     // to keep this a unit test and not an integration test, we will manually prime
     // the three.js index pos.
@@ -274,11 +274,15 @@ describe('ParserService', () => {
 
     let scriptEls = doc.getElementsByTagName('script');
     expect(scriptEls.length).toEqual(scriptCnt + 1);
+    
 
     // verify the three.js is unaffected 
     scriptEls[threeJsScriptIndex].getAttribute('src').match(/three\.js/);
     // and the script tag after it is webVr.
     scriptEls[threeJsScriptIndex + 1].getAttribute('src').match(/js\/vr\/WebVR.js/);
+
+    console.log(`result=${doc.scripts[threeJsScriptIndex + 1].getAttribute('src')}`);
+    console.log(`result=${doc.documentElement.innerHTML}`);
 
   })
 

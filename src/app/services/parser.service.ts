@@ -193,8 +193,8 @@ export class ParserService {
   addVrAnimateFn(text: string) : string {
     let newText = '';
     // rename any prior 'animate' fn to 'render'
-    newText = text.replace(/(function\s+)(animate)/m, 
-      `${this.base.markupAlterBegin}\n$1render\n${this.base.markupAlterEnd}`);
+    newText = text.replace(/(function\s+)(animate)(\s*)/m, 
+      `${this.base.markupAlterBegin}\n$1render$2\n${this.base.markupAlterEnd}`);
     // debugger;
 
     // insert the the vr animate fn
