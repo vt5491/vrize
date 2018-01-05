@@ -26,9 +26,11 @@ export class ConvertComponent implements OnInit {
   onSubmit(f: NgForm) {
     console.log(`Convert.onSubmit: entered, f.value=${f.controls.inputText.value}`);
     // debugger;
-    this.userConvert(f.controls.inputText.value);
+    // this.userConvert(f.controls.inputText.value);
+    this.userConvert(this.inputString);
     // let mainScriptIdx = this.parser.findMainScript(this.inputDoc);
     // f.controls.outputText.value = this.inputDoc.scripts[mainScriptIdx];
+    // debugger;
     this.outputText = new XMLSerializer().serializeToString(this.inputDoc);
     console.log(`outputText=${this.outputText}`);
     // f.controls.outputText.value = this.outputText;
@@ -56,82 +58,85 @@ export class ConvertComponent implements OnInit {
 
   }
 
+  // This is totally deletable. Only used for testing.
+  // this is 'three.js/examples/webgl_geometry_cube.html'.  I specify it here
+  // so I don't have to continuously paste it into the input form.
   inputString = `
   <!DOCTYPE html>
   <html lang="en">
-  	<head>
-  		<title>three.js webgl - geometry - cube</title>
-  		<meta charset="utf-8">
-  		<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
-  		<style>
-  			body {
-  				margin: 0px;
-  				background-color: #000000;
-  				overflow: hidden;
-  			}
-  		</style>
-  	</head>
-  	<body>
+    <head>
+      <title>three.js webgl - geometry - cube</title>
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+      <style>
+        body {
+          margin: 0px;
+          background-color: #000000;
+          overflow: hidden;
+        }
+      </style>
+    </head>
+    <body>
 
-  		<script src="../build/three.js"></script>
+      <script src="../build/three.js"></script>
 
-  		<script>
+      <script>
 
-  			var camera, scene, renderer;
-  			var mesh;
+        var camera, scene, renderer;
+        var mesh;
 
-  			init();
-  			animate();
+        init();
+        animate();
 
-  			function init() {
+        function init() {
 
-  				camera = new THREE.PerspectiveCamera( 70, window.innerWidth / window.innerHeight, 1, 1000 );
-  				camera.position.z = 400;
+          camera = new THREE.PerspectiveCamera( 70, window.innerWidth / window.innerHeight, 1, 1000 );
+          camera.position.z = 400;
 
-  				scene = new THREE.Scene();
+          scene = new THREE.Scene();
 
-  				var texture = new THREE.TextureLoader().load( 'textures/crate.gif' );
+          var texture = new THREE.TextureLoader().load( 'textures/crate.gif' );
 
-  				var geometry = new THREE.BoxBufferGeometry( 200, 200, 200 );
-  				var material = new THREE.MeshBasicMaterial( { map: texture } );
+          var geometry = new THREE.BoxBufferGeometry( 200, 200, 200 );
+          var material = new THREE.MeshBasicMaterial( { map: texture } );
 
-  				mesh = new THREE.Mesh( geometry, material );
-  				scene.add( mesh );
+          mesh = new THREE.Mesh( geometry, material );
+          scene.add( mesh );
 
-  				renderer = new THREE.WebGLRenderer();
-  				renderer.setPixelRatio( window.devicePixelRatio );
-  				renderer.setSize( window.innerWidth, window.innerHeight );
-  				document.body.appendChild( renderer.domElement );
+          renderer = new THREE.WebGLRenderer();
+          renderer.setPixelRatio( window.devicePixelRatio );
+          renderer.setSize( window.innerWidth, window.innerHeight );
+          document.body.appendChild( renderer.domElement );
 
-  				//
+          //
 
-  				window.addEventListener( 'resize', onWindowResize, false );
+          window.addEventListener( 'resize', onWindowResize, false );
 
-  			}
+        }
 
-  			function onWindowResize() {
+        function onWindowResize() {
 
-  				camera.aspect = window.innerWidth / window.innerHeight;
-  				camera.updateProjectionMatrix();
+          camera.aspect = window.innerWidth / window.innerHeight;
+          camera.updateProjectionMatrix();
 
-  				renderer.setSize( window.innerWidth, window.innerHeight );
+          renderer.setSize( window.innerWidth, window.innerHeight );
 
-  			}
+        }
 
-  			function animate() {
+        function animate() {
 
-  				requestAnimationFrame( animate );
+          requestAnimationFrame( animate );
 
-  				mesh.rotation.x += 0.005;
-  				mesh.rotation.y += 0.01;
+          mesh.rotation.x += 0.005;
+          mesh.rotation.y += 0.01;
 
-  				renderer.render( scene, camera );
+          renderer.render( scene, camera );
 
-  			}
+        }
 
-  		</script>
+      </script>
 
-  	</body>
+    </body>
   </html>
 
   `

@@ -9,11 +9,13 @@ export class TransformerService {
 
   constructor(private parser: ParserService) { }
 
-  // pipeline to transform (vr-ize) a plain three.js script into a vr-compatible script.
+  // full pipeline to transform (vr-ize) a plain three.js script into a vr-compatible script.
+  // We transform html using a doc, but generally use text to manipulate script
+  // text.
   liftDoc (doc: Document) : Document {
     // debugger;
     let threeJsIndex = this.liftLibs(doc);
-    this.parser.addWebVrScript(doc, threeJsIndex);
+    // this.parser.addWebVrScript(doc, threeJsIndex);
 
     // script level processing
     let mainScriptIndex = this.parser.findMainScript(doc);

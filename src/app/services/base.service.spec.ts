@@ -10,7 +10,7 @@ describe('BaseService', () => {
     TestBed.configureTestingModule({
       providers: [BaseService]
     });
-    service = TestBed.get(BaseService); 
+    service = TestBed.get(BaseService);
   });
 
   //need this for some reason to prevent message when running parser.service.ts
@@ -25,7 +25,7 @@ describe('BaseService', () => {
   }));
 
   it('global constants should be properly set', () => {
-    expect(service.markupCommentBegin).toBeTruthy();
-    expect(service.markupCommentEnd).toBeTruthy();
+    expect(service.jsMarkupCommentBegin).toBeTruthy();
+    expect(service.jsMarkupCommentEnd).toBeTruthy();
   });
 });

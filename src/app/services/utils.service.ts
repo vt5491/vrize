@@ -27,27 +27,39 @@ export class UtilsService {
             //  });
   }
 
-  commentSandwich(text : string) : string {
-    let beginTag = this.base.markupCommentBegin;
-    let endTag = this.base.markupCommentEnd;
+  jsCommentSandwich(text : string) : string {
+    let beginTag = this.base.jsMarkupCommentBegin;
+    let endTag = this.base.jsMarkupCommentEnd;
 
     return `${beginTag}\n${text}\n${endTag}`;
   }
 
-  commentOutSandwich(text : string) : string {
-    let beginTag = this.base.markupCommentOutBegin;
-    let endTag = this.base.markupCommentOutEnd;
+  jsCommentOutSandwich(text : string) : string {
+    let beginTag = this.base.jsMarkupCommentOutBegin;
+    let endTag = this.base.jsMarkupCommentOutEnd;
 
     return `${beginTag}\n//${text}\n${endTag}`;
   }
 
   alterSandwich(text : string) : string {
-    let beginTag = this.base.markupAlterBegin;
-    let endTag = this.base.markupAlterEnd;
+    let beginTag = this.base.jsMarkupAlterBegin;
+    let endTag = this.base.jsMarkupAlterEnd;
 
     return `${beginTag}\n${text}\n${endTag}`;
   }
 
+  // alter the doc directly
+  htmlCommentSandwich(doc : Document, refNode: Node) {
+    let beginTag = this.base.htmlMarkupCommentBegin;
+    let endTag = this.base.htmlMarkupCommentEnd;
+
+    let beginNode = doc.createComment(beginTag);
+    let endNode = doc.createComment(endTag);
+
+    // return `${beginTag}\n${text}\n${endTag}`;
+    this.insertBefore(beginNode, refNode); 
+    this.insertAfter(endNode, refNode); 
+  }
 
   // escape special chars with a '\', which is necessary with regexes in some cases.
   escapeText(text) : string { 
@@ -61,5 +73,12 @@ export class UtilsService {
   //                   .catch((error:any) => console.log(error));
 
   // }
+  insertBefore(newNode, refNode) {
+    refNode.parentNode.insertBefore(newNode, refNode);
+  }
+
+  insertAfter(newNode, refNode) {
+    refNode.parentNode.insertBefore(newNode, refNode.nextSibling);
+  }
 
 }

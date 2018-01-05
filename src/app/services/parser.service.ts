@@ -104,7 +104,17 @@ export class ParserService {
     el.setAttribute('src', 'js/vr/WebVR.js');
 
     // parentNode.appendChild(el);
-    doc.getElementsByTagName('script')[threeJsScriptIndex].appendChild(el);
+    // doc.getElementsByTagName('script')[threeJsScriptIndex].appendChild(el);
+    // doc.getElementsByTagName('script')[threeJsScriptIndex].appendChild(el);
+    // debugger;
+    let refNode = doc.getElementsByTagName('script')[threeJsScriptIndex];
+    // refNode.parentNode.insertBefore(el, refNode.nextSibling);
+    // this.utils.insertBefore(el, refNode);
+    this.utils.insertAfter(el, refNode);
+
+    // wrap the new node in a comment bracket
+    // this.utils.htmlCommentSandwich(doc, refNode);
+    this.utils.htmlCommentSandwich(doc, el);
   }
 
   // script parsing
@@ -119,11 +129,12 @@ export class ParserService {
     // pass the renderer variable name and get actual variable-specific insert text
     let rendererName = m[1];
     let vrRendererLine = this.getVrRendererTemplate(rendererName);
-    let insertText = this.utils.commentSandwich(vrRendererLine);
+    let insertText = this.utils.jsCommentSandwich(vrRendererLine);
 
     //TODO: double escape special vars in string
     // actually..don't need to do because it's in the replace string
-    let newText = text.replace(/.*new THREE\.WebGLRenderer.*/m, `$&\n${insertText}\n`);
+    let newText = text.replace(/.*new THREE\.WebGLRenderer.*/m, 
+      `$&\n${insertText}\n`);
     // debugger;
     
     // return newText;
@@ -161,7 +172,7 @@ export class ParserService {
     // let newText = text.replace(/.*new THREE\.WebGLRenderer.*/m, `$&\n${insertText}\n`);
     // pass the append element name and get actual variable-specific insert text
     let vrButtonLine = this.getVrButtonTemplate(elName, rendererName);
-    let insertText = this.utils.commentSandwich(vrButtonLine);
+    let insertText = this.utils.jsCommentSandwich(vrButtonLine);
 
     // let newText = text.replace(/.*new THREE\.WebGLRenderer.*/m, `$&\n${insertText}\n`);
     // let re2 = new RegExp(`${elName}\.appendChild\(\s*${rendererName}\.domELement\s*\)`);
@@ -193,19 +204,21 @@ export class ParserService {
   addVrAnimateFn(text: string) : string {
     let newText = '';
     // rename any prior 'animate' fn to 'render'
-    newText = text.replace(/(function\s+)(animate)(\s*)/m, 
-      `${this.base.markupAlterBegin}\n$1render$2\n${this.base.markupAlterEnd}`);
+    newText = text.replace(/(function\s+)(animate)(\s*)(\(.*\))(\s*)(\{)/m, 
+      // `${this.base.jsMarkupAlterBegin}\n$1render$2\n${this.base.jsMarkupAlterEnd}`);
+      `${this.base.jsMarkupAlterBegin}\n//$1$2$3$4$5$6` + 
+      `\n$1render$4$5$6\n${this.base.jsMarkupAlterEnd}`);
     // debugger;
 
     // insert the the vr animate fn
     let insertText = this.getVrAnimateFnTemplate();
-    insertText = this.utils.commentSandwich(insertText);
+    insertText = this.utils.jsCommentSandwich(insertText);
 
-    newText = newText + insertText;
+    newText = newText + insertText + "\n";
 
     //comment out any 'requestAnimationFrame'
     newText = newText.replace(/[^\n]*requestAnimationFrame[^\n]*/m, 
-      `${this.base.markupCommentOutBegin}\n//$&\n${this.base.markupCommentOutEnd}`);
+      `${this.base.jsMarkupCommentOutBegin}\n//$&\n${this.base.jsMarkupCommentOutEnd}`);
     // debugger;
     // newText = newText.replace(/(\n)(^\s*requestAnimationFrame)/m, `//$1`);
 

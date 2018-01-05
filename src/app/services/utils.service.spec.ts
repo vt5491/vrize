@@ -12,6 +12,15 @@ import { log } from 'util';
 
 let service : UtilsService;
 let base : BaseService;
+let parser : domParser;
+let simpleDoc : Document;
+let htmlStr = `
+<html>
+  <head>
+    <script id='script1'></script>
+  </head>
+</html>
+`
 
 describe('UtilsService', () => {
   beforeEach(() => {
@@ -21,6 +30,9 @@ describe('UtilsService', () => {
     });
     service = TestBed.get(UtilsService);
     base = TestBed.get(BaseService);
+
+    parser = new DOMParser();
+    simpleDoc = parser.parseFromString(htmlStr, "text/html");
   });
 
 
@@ -29,28 +41,41 @@ describe('UtilsService', () => {
     expect(service).toBeTruthy();
   }));
 
-  it('commentSandwich put the passed text between "start" and "end" comments', () => {
-    let result = service.commentSandwich("abc");
+  it('jsCommentSandwich put the passed text between "start" and "end" comments', () => {
+    let result = service.jsCommentSandwich("abc");
 
-    let beginTag = base.markupCommentBegin;
-    let endTag = base.markupCommentEnd;
+    let beginTag = base.jsMarkupCommentBegin;
+    let endTag = base.jsMarkupCommentEnd;
 
     // expect(result).toEqual(`${beginTag}\nabc\n${endTag}`);
+  })
+
+  it('htmlCommentSandwich adds a comment bracket to a node in simpleDoc', () => {
+    let scriptNode = simpleDoc.getElementById('script1');
+    let result = service.htmlCommentSandwich(simpleDoc, scriptNode);
+
+    let beginTag = base.htmlMarkupCommentBegin;
+    let endTag = base.htmlMarkupCommentEnd;
+
+    let strResult = new XMLSerializer().serializeToString(simpleDoc);
+    console.log(`strResult=${strResult}`);
+    let re = new RegExp(`\<\!--${beginTag}--\>[\n]*.*\<\!--${endTag}--\>`);
+    expect(strResult).toMatch(re);
   })
 
   it('alterSandwich put the passed text between "start" and "end" comments', () => {
     let result = service.alterSandwich("abc");
 
-    let beginTag = base.markupAlterBegin;
-    let endTag = base.markupAlterEnd;
+    let beginTag = base.jsMarkupAlterBegin;
+    let endTag = base.jsMarkupAlterEnd;
 
     expect(result).toEqual(`${beginTag}\nabc\n${endTag}`);
     console.log(`result=${result}`);
-    
+
   })
-  // it('getFileText abc.html works', inject([UtilsService, HttpClient], 
+  // it('getFileText abc.html works', inject([UtilsService, HttpClient],
   //     (service: UtilsService, http: HttpClient) => {
-  // // it('getFileText abc.html works', inject([UtilsService, HttpClient], 
+  // // it('getFileText abc.html works', inject([UtilsService, HttpClient],
   // //     (service: UtilsService, http: HttpClient) => {
   //   // spyOn(http, "get").and.returnValue('<html></html>');
   //   // let textObs = service.getText('../../assets/test/abc.json');
@@ -59,7 +84,7 @@ describe('UtilsService', () => {
   //   textObs.subscribe(
   //     data => {
   //       console.log(`ut: data=${data}`);
-  //     },    
+  //     },
   //     err => {
   //       debugger;
   //       console.log('err= ' + err);
@@ -79,7 +104,7 @@ describe('UtilsService', () => {
   //   textObs.subscribe(
   //     data => {
   //       console.log(`ut: data=${data}`);
-  //     },    
+  //     },
   //     err => {
   //       debugger;
   //       console.log('err= ' + err);

@@ -20,7 +20,7 @@ let http: HttpClient;
 let base : BaseService;
 let utils : UtilsService;
 // webvr_cubes.html is an example of a script that is already 'vr-ized'.  Thus it can serve
-// as an example of a script that should *not* be altered by any vr-izing methods. 
+// as an example of a script that should *not* be altered by any vr-izing methods.
 let webvr_cubes_html : string;
 let webgl_geometry_cube_html : string;
 let testScriptHtml : string;
@@ -33,7 +33,7 @@ let parser : DOMParser;
 describe('ParserService', () => {
   beforeAll((done) => {
     console.log(`ParserService.beforeAll: entered`);
-    
+
     // TestBed.resetTestEnvironment();
     TestBed.configureTestingModule({
       imports: [HttpClientModule],
@@ -78,7 +78,7 @@ describe('ParserService', () => {
     // http.get(fn, {responseType: 'text'})
     // .subscribe(
     //   data => {
-    //     // console.log(data); 
+    //     // console.log(data);
     //     webvr_cubes_html = data;
     //     done();
     //   },
@@ -89,7 +89,7 @@ describe('ParserService', () => {
     //   () => console.log('yay')
     // );
 
-    basicHtml = 
+    basicHtml =
     `<html>
       <head>
         <script src="../../build/three.js"></script>
@@ -104,7 +104,7 @@ describe('ParserService', () => {
     </html>
     `
 
-    simpleScriptText = 
+    simpleScriptText =
     `
     function init() {
       innerGame.innerWebGLRenderer = new THREE.WebGLRenderer({ antialias: true });
@@ -113,21 +113,21 @@ describe('ParserService', () => {
     }
 
     function animate() {
-      
+
       requestAnimationFrame( animate );
-      
+
       mesh.rotation.x += 0.005;
       mesh.rotation.y += 0.01;
-      
+
       renderer.render( scene, camera );
-      
+
     }
     `
   });
 
   beforeEach(() => {
     console.log(`ut.beforeEach: entered`);
-    
+
     // TestBed.resetTestEnvironment();
     TestBed.configureTestingModule({
       imports: [
@@ -147,7 +147,7 @@ describe('ParserService', () => {
 
     parser = new DOMParser();
 
-    // some methods alter the script text, so we need to make a test copy we can alter 
+    // some methods alter the script text, so we need to make a test copy we can alter
     // the string each time.
     testScriptHtml = webgl_geometry_cube_html;
 
@@ -158,7 +158,7 @@ describe('ParserService', () => {
     testScriptText = testScriptDoc.scripts[testScriptIndex].innerHTML;
     // debugger;
     // console.log(`testScriptText=${testScriptText}`);
-    
+
   });
 
   // afterEach(() => {
@@ -184,7 +184,7 @@ describe('ParserService', () => {
     // debugger;
   });
 
-  it('findMainScript works with a basic script', () => { 
+  it('findMainScript works with a basic script', () => {
     // create a simple dom object
     let parser = new DOMParser();
     let doc = parser.parseFromString(basicHtml, "application/xml");
@@ -205,7 +205,7 @@ describe('ParserService', () => {
     // service.appendWebVrScript(parentEl);
   });
 
-  it('findMainScript works with a full html', () => { 
+  it('findMainScript works with a full html', () => {
     let parser = new DOMParser();
     let doc = parser.parseFromString(webgl_geometry_cube_html, "text/html");
     let scriptIndex = service.findMainScript(doc);
@@ -215,7 +215,7 @@ describe('ParserService', () => {
     // let text = script.innerHTML;
     let text = doc.getElementsByTagName('script')[scriptIndex].innerHTML;
     // let text = ((doc.getElementsByName('script'))[scriptIndex]).innerHTML;
-    //let script = 
+    //let script =
     // let scriptIndex = result.scriptIndex;
     expect(text).toBeTruthy();
     expect(typeof text).toEqual("string");
@@ -227,7 +227,7 @@ describe('ParserService', () => {
     expect(scriptIndex).toEqual(1);
   })
 
-  it('findThreeJsScript works with basicHtml', () => { 
+  it('findThreeJsScript works with basicHtml', () => {
     let parser = new DOMParser();
     let doc = parser.parseFromString(basicHtml, "text/html");
 
@@ -240,7 +240,7 @@ describe('ParserService', () => {
     expect(scriptIndex).toEqual(0);
   });
 
-  it('findThreeJsScript works with full html', () => { 
+  it('findThreeJsScript works with full html', () => {
     let doc = parser.parseFromString(webgl_geometry_cube_html, "text/html");
 
     let scriptIndex = service.findThreeJsScript(doc);
@@ -252,11 +252,11 @@ describe('ParserService', () => {
     expect(scriptIndex).toEqual(0);
   });
 
-  fit('addWebVrScript properly adds after the three.js script tag', () => { 
+  it('addWebVrScript properly adds after the three.js script tag', () => {
     // normally this method will rely on results from 'findThreeJsScript', but in order
     // to keep this a unit test and not an integration test, we will manually prime
     // the three.js index pos.
-    let simpleHtml = 
+    let simpleHtml =
     `<html>
       <head>
         <script src="dummy"></script>
@@ -274,9 +274,9 @@ describe('ParserService', () => {
 
     let scriptEls = doc.getElementsByTagName('script');
     expect(scriptEls.length).toEqual(scriptCnt + 1);
-    
 
-    // verify the three.js is unaffected 
+
+    // verify the three.js is unaffected
     scriptEls[threeJsScriptIndex].getAttribute('src').match(/three\.js/);
     // and the script tag after it is webVr.
     scriptEls[threeJsScriptIndex + 1].getAttribute('src').match(/js\/vr\/WebVR.js/);
@@ -284,15 +284,22 @@ describe('ParserService', () => {
     console.log(`result=${doc.scripts[threeJsScriptIndex + 1].getAttribute('src')}`);
     console.log(`result=${doc.documentElement.innerHTML}`);
 
+    // make sure it's wrapped in a coment sandwich
+    // believe it or not, this is really hard to do, so skip it.
+    // expect(scriptEls)
+    // console.log(`nextSibiling=${scriptEls.nextSibling}`);
+    // debugger;
+    // console.log(`nextSibiling=${scriptEls.nextSibling}`);
+
   })
 
-  it('addVrRenderer properly adds a comment sandwich and the line "renderer.vr.enabled = true;"', () => { 
+  it('addVrRenderer properly adds a comment sandwich and the line "renderer.vr.enabled = true;"', () => {
     let result = service.addVrRenderer(simpleScriptText);
 
     // console.log(`base.begincomment=${base.markupCommentBegin}`);
     // expect(result).toMatch(/renderer\.vr\.enabled = true;/gm);
     let newText = service.getVrRendererTemplate('innerGame.innerWebGLRenderer');
-    let insertText = utils.commentSandwich(newText);
+    let insertText = utils.jsCommentSandwich(newText);
     let re = new RegExp(insertText, "gm");
 
     expect(result['newText']).toMatch(re);
@@ -300,32 +307,32 @@ describe('ParserService', () => {
     // expect(testScriptHtml).toMatch(/renderer\.vr\.enabled = true;/gm);
   })
 
-  it('addVrRenderer works on a real script', () => { 
+  it('addVrRenderer works on a real script', () => {
     let result = service.addVrRenderer(testScriptHtml);
 
     let newText = service.getVrRendererTemplate('renderer');
-    let insertText = utils.commentSandwich(newText);
+    let insertText = utils.jsCommentSandwich(newText);
     let re = new RegExp(insertText, "gm");
 
     expect(result['newText']).toMatch(re);
     expect(result['rendererName']).toEqual('renderer');
     // expect(testScriptHtml).toMatch(/renderer\.vr\.enabled = true;/gm);
     console.log(`ut:addVrRenderer: result=${result}`);
-    
+
   })
 
-  it('addVrButton works on a basic script', () => { 
+  it('addVrButton works on a basic script', () => {
     let rendererName = 'innerGame.innerWebGLRenderer';
     let appendEl = 'document.body';
     let result = service.addVrButton(simpleScriptText, rendererName);
 
     let newText = service.getVrButtonTemplate(appendEl, rendererName);
-    let insertText = utils.commentSandwich(newText);
+    let insertText = utils.jsCommentSandwich(newText);
     //Don't know why I have to escape it in the ut, but not in the main code..
     // insertText = insertText.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&')
     insertText = utils.escapeText(insertText);
     console.log(`ut:insertText=${insertText}`);
-    
+
     let re = new RegExp(insertText, "m");
 
     expect(result).toMatch(re, 'm');
@@ -335,6 +342,7 @@ describe('ParserService', () => {
 
   it('addVrAnimateFn works with a simple script', () => {
     let result = service.addVrAnimateFn(simpleScriptText);
+    console.log(`ut:addVrAnimateFn: result=${result}`);
     // debugger;
     let expectedText = service.getVrAnimateFnTemplate();
     // expectedText = expectedText.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&')
@@ -349,7 +357,8 @@ describe('ParserService', () => {
 
     // verify the original animate function is renamed to 'render'
     // let animateCommentOutRe = new RegExp(`//\s*function animate`, 'm');
-    let renderRe = new RegExp(/\n\s*function render/, 'm');
+    // let renderRe = new RegExp(/\n\s*function render\(/, 'm');
+    let renderRe = new RegExp(/\n\s*function render\(.*\) \{/, 'm');
     expect(result).toMatch(renderRe);
 
     // verify 'requestAnimationFrame is commented out
@@ -382,4 +391,3 @@ describe('ParserService', () => {
   })
 
 });
-
