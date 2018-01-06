@@ -31,7 +31,11 @@ let simpleScriptText : string;
 let parser : DOMParser;
 
 describe('ParserService', () => {
+
+  //Note: the file load is not what causes the few seconds lag in the browser
+  // running the uts.  What is slowing it down is the 'ng test' compile step
   beforeAll((done) => {
+  // beforeAll(() => {
     console.log(`ParserService.beforeAll: entered`);
 
     // TestBed.resetTestEnvironment();
@@ -106,10 +110,16 @@ describe('ParserService', () => {
 
     simpleScriptText =
     `
+    var camera, scene, renderer;
+    var mesh;
+
     function init() {
       innerGame.innerWebGLRenderer = new THREE.WebGLRenderer({ antialias: true });
       var a = 7;
       document.body.appendChild( innerGame.innerWebGLRenderer.domElement );
+      camera = new THREE.PerspectiveCamera( 70, window.innerWidth / window.innerHeight, 1, 1000 );
+      camera.position.z = 400;
+      scene = new THREE.Scene();
     }
 
     function animate() {
@@ -388,6 +398,29 @@ describe('ParserService', () => {
 
     // console.log(`result=${result}`);
 
+  })
+
+  it('extractInitCameraPos works on a simple script', () => {
+    let extractedPos = service.extractInitCameraPos(simpleScriptText);
+    // console.log(`ut: extractedPos=${extractedPos}`);
+
+    // expect(extractedPos.x).toEqual(0);
+    // expect(extractedPos.y).toEqual(0);
+    expect(extractedPos.z).toEqual(400);
+  })
+
+  it('addDolly properly inserts its stub', () => {
+    let newScript = service.addDolly(simpleScriptText);
+    // console.log(`ut.parser.service.spec.ts: newScript=${newScript}`);
+
+    expect(newScript).toMatch(/dolly\.position\.set\(0, 0, 400\)/, 'm');
+
+  })
+
+  it('addDollyVar works', () => {
+    let newScript = service.addDollyVar(simpleScriptText);
+    console.log(`ut.parser.service.spec.ts: newScript=${newScript}`);
+    expect(newScript).toMatch(/var dolly;/, 'm');
   })
 
 });

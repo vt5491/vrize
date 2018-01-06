@@ -29,6 +29,10 @@ export class TransformerService {
     newText = this.parser.addVrButton(newText, rendererName);
     newText = this.parser.addVrAnimateFn(newText);
 
+    // add dolly support
+    newText = this.parser.addDollyVar(newText);
+    newText = this.parser.addDolly(newText);
+
     doc.scripts[mainScriptIndex].innerHTML = newText;
     return doc;
   }

@@ -12,7 +12,7 @@ import { log } from 'util';
 
 let service : UtilsService;
 let base : BaseService;
-let parser : domParser;
+let parser : DOMParser;
 let simpleDoc : Document;
 let htmlStr = `
 <html>
@@ -34,8 +34,6 @@ describe('UtilsService', () => {
     parser = new DOMParser();
     simpleDoc = parser.parseFromString(htmlStr, "text/html");
   });
-
-
 
   it('should be created', inject([UtilsService], (service: UtilsService) => {
     expect(service).toBeTruthy();

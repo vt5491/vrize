@@ -5,6 +5,7 @@ import { Node, Element } from '@angular/compiler';
 
 import { BaseService } from './base.service';
 import { UtilsService } from './utils.service';
+import * as THREE from 'THREE';
 
 
 @Injectable()
@@ -243,5 +244,88 @@ function animate() {
     return parseLookup;
 
   }
+
+  // Attempt to find the position the script sets the camera to.  We need
+  // this so we can properly set the dolly's position later.
+  extractInitCameraPos(scriptText) : THREE.Vector3 {
+    let extractedPos = new THREE.Vector3();
+    let reMatch = []
+
+    // look for camera.position.n statements
+    // let re = new RegExp('camera\.position\.[xyz]\s*=\s*([\d]+)', 'gm'); 
+    // Note: we don't specify 'g' (global search), so that the bracketing
+    // will work.  Unfortunately, this means we pull the first match.  Presumably
+    // if multiple dimensions are set, they won't be using this syntax.
+    let re= new RegExp(/camera\.position\.([xyz])\s*=\s*(\d+)/, 'm')
+
+    reMatch = scriptText.match(re);
+    // debugger;
+
+    if (reMatch && reMatch[1] && reMatch[2]) {
+      let numericPos = parseInt(reMatch[2]);
+
+      switch(reMatch[1]) {
+        case 'x':
+          extractedPos.x = numericPos;
+          break;
+        case 'y':
+          extractedPos.y = numericPos;
+          break;
+        case 'z':
+          extractedPos.z = numericPos;
+          break;
+      }
+    }
+
+    return extractedPos;
+  }
+
+  // add a 'var dolly;' statement
+  addDollyVar(scriptText: string) : string {
+    // look for the 'var=camera' line and add it after that
+    let newText : string;
+
+    let insertRe = new RegExp(/var.*camera.*;/,'m');
+
+    let insertText = 'var dolly;';
+    insertText = this.utils.jsCommentSandwich(insertText);
+
+    newText = scriptText.replace(insertRe, `$&\n${insertText}\n`);
+
+    return newText;
+  }
+
+  addDolly(scriptText: string) : string {
+    let newText : string;
+
+    // new THREE.Scene();
+    // find the creation of the 'scene' object.  After this is where we will
+    // add in the dolly stub.  A case can be made for doing at the end of the
+    // init method, since we need to be sure camera and scene are defined, but
+    // for now just assume after the scene object creation will work.
+    let insertRe = new RegExp(/new THREE.Scene\(\);/, 'm');
+
+    let extractedPos = this.extractInitCameraPos(scriptText);
+
+    let insertText = '';
+    // let insertText = "dolly.position.set(0, 0, 400);"
+    insertText += "dolly = new THREE.Object3D();\n";
+    if (extractedPos) {
+      insertText += `dolly.position.set(${extractedPos.x}, ${extractedPos.y}, ${extractedPos.z});\n`;
+    }
+    insertText += "scene.add(dolly);\n";
+    insertText += "dolly.add(camera);\n";
+
+    insertText = this.utils.jsCommentSandwich(insertText);
+
+    newText = scriptText.replace(insertRe, `$&\n${insertText}\n`);
+
+    return newText;
+  }
+
+  // getAddDollyTemplate() : string {
+
+  // }
+  //TODO add a 'var dolly' statement
 
 }
