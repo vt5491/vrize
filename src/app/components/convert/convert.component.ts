@@ -1,8 +1,10 @@
 import { Component, OnInit } from '@angular/core';
 import {NgForm} from '@angular/forms';
+import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 
 import { TransformerService } from '../../services/transformer.service';
 import { ParserService } from '../../services/parser.service';
+import * as _ from 'lodash';
 
 @Component({
   selector: 'app-convert',
@@ -15,6 +17,7 @@ export class ConvertComponent implements OnInit {
   outputText: string;
 
   constructor(
+    private http: HttpClient,
     private transformer: TransformerService,
     private parser: ParserService) {
 
@@ -25,16 +28,34 @@ export class ConvertComponent implements OnInit {
 
   onSubmit(f: NgForm) {
     console.log(`Convert.onSubmit: entered, f.value=${f.controls.inputText.value}`);
-    // debugger;
-    // this.userConvert(f.controls.inputText.value);
-    this.userConvert(this.inputString);
-    // let mainScriptIdx = this.parser.findMainScript(this.inputDoc);
-    // f.controls.outputText.value = this.inputDoc.scripts[mainScriptIdx];
-    // debugger;
-    this.outputText = new XMLSerializer().serializeToString(this.inputDoc);
-    console.log(`outputText=${this.outputText}`);
-    // f.controls.outputText.value = this.outputText;
-    // debugger;
+    // let fn = '../../assets/test/examples/unix_style/webgl_geometry_cube.html';
+    // let fn = '../../assets/test/examples/unix_style/webgl_geometries.html';
+    let fn = '../../assets/test/examples/unix_style/webgl_shaders_ocean.html';
+    this.http.get(fn, {responseType: 'text'})
+    .subscribe(
+      data => {
+        this.inputString = data;
+        // console.log(`inputString=${this.inputString}`);
+        this.userConvert(this.inputString);
+        // this.outputText = new XMLSerializer().serializeToString(this.inputDoc);
+        // Note: we have to call decodeURI to get rid of things like '&lt;' in the
+        // javascript (XMLSerializer will escape all the javascript)
+        this.outputText = _.unescape(
+          new XMLSerializer().serializeToString(this.inputDoc));
+        console.log(`outputText=${this.outputText}`);
+      },
+      (err: HttpErrorResponse) => {
+        console.log('parseHtml: err=' + err, 'httperror=' + err.error);
+      },
+      () => {
+        //TODO: put calls for other files here and put the 'done()' call in the last of the chain
+        console.log('webgl_geometries loaded');
+      }
+    );
+
+    // this.userConvert(this.inputString);
+    // this.outputText = new XMLSerializer().serializeToString(this.inputDoc);
+    // console.log(`outputText=${this.outputText}`);
   }
   // userConvert(e : Event) {
   userConvert(inputText : string) {
@@ -45,7 +66,7 @@ export class ConvertComponent implements OnInit {
     // let inputHtml = el.innerHTML;
     let inputHtml = inputText;
     // console.log(`Convert.userConvert: inputText.value=${el.innerHTML}`);
-    console.log(`Convert.userConvert: inputText.value=${inputText}`);
+    // console.log(`Convert.userConvert: inputText.value=${inputText}`);
     //
     let domParser = new DOMParser();
 

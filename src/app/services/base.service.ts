@@ -4,6 +4,8 @@ import { log } from 'util';
 @Injectable()
 export class BaseService {
 
+  public appTag : string;
+
   public jsMarkupCommentBegin : string;
   public jsMarkupCommentEnd : string;
   public jsMarkupCommentOutBegin : string;
@@ -15,19 +17,20 @@ export class BaseService {
   public htmlMarkupCommentEnd : string;
 
   constructor() { 
-    this.jsMarkupCommentBegin = "//vrize add start";
-    this.jsMarkupCommentEnd = "//vrize add end";
+    this.appTag = `vrize`;
+    this.jsMarkupCommentBegin = `//${this.appTag} add start`;
+    this.jsMarkupCommentEnd = `//${this.appTag} add end`;
 
-    this.jsMarkupCommentOutBegin = "//vrize comment out start";
-    this.jsMarkupCommentOutEnd = "//vrize comment out end";
+    this.jsMarkupCommentOutBegin = `//${this.appTag} comment out start`;
+    this.jsMarkupCommentOutEnd = `//${this.appTag} comment out end`;
 
-    this.jsMarkupAlterBegin = "//vrize alter start";
-    this.jsMarkupAlterEnd = "//vrize alter end";
+    this.jsMarkupAlterBegin = `//${this.appTag} alter start`;
+    this.jsMarkupAlterEnd = `//${this.appTag} alter end`;
 
     // note: the '<!--' and '-->' that normally bracket html comments are
     // added in the function itself via 'document.createComment'
-    this.htmlMarkupCommentBegin = "vrize add start";
-    this.htmlMarkupCommentEnd = "vrize add end";
+    this.htmlMarkupCommentBegin = `${this.appTag} add start`;
+    this.htmlMarkupCommentEnd = `${this.appTag} add end`;
   }
 
   doSomething() {

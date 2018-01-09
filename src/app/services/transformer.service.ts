@@ -14,6 +14,9 @@ export class TransformerService {
   // text.
   liftDoc (doc: Document) : Document {
     // debugger;
+    // add a timestamp
+    this.parser.addHtmlTimeStamp(doc);
+
     let threeJsIndex = this.liftLibs(doc);
     // this.parser.addWebVrScript(doc, threeJsIndex);
 

@@ -30,17 +30,14 @@
 			<a href="http://threejs.org" target="_blank" rel="noopener">three.js</a> - webgl ocean
 		</div>
 
-		<script src="../../build/three.js"></script>
+		<script src="../build/three.js"></script>
 
-		<script src="../js/controls/OrbitControls.js"></script>
-		<script src="../js/objects/Water.js"></script>
+		<script src="js/controls/OrbitControls.js"></script>
+		<script src="js/objects/Water.js"></script>
 
-		<script src="../js/Detector.js"></script>
-		<script src="../js/libs/stats.min.js"></script>
-		<script src="../js/libs/dat.gui.min.js"></script>
-		<!--vt add -->
-		<script src="../js/vr/WebVR.js"></script>
-		<!--vt end -->
+		<script src="js/Detector.js"></script>
+		<script src="js/libs/stats.min.js"></script>
+		<script src="js/libs/dat.gui.min.js"></script>
 
 		<script>
 
@@ -49,9 +46,6 @@
 			var container, stats;
 			var camera, scene, renderer, light;
 			var controls, water, sphere, cubeMap;
-			//vt add
-			var dolly
-			//vt end
 
 			var parameters = {
 				oceanSide: 2000,
@@ -73,13 +67,7 @@
 				renderer.setPixelRatio( window.devicePixelRatio );
 				renderer.setSize( window.innerWidth, window.innerHeight );
 				renderer.shadowMap.enabled = true;
-				//vt add
-				renderer.vr.enabled = true;
-				//vt end
 				container.appendChild( renderer.domElement );
-				//vt add
-				container.appendChild(WEBVR.createButton(renderer));
-				//vt end
 
 				//
 
@@ -89,14 +77,7 @@
 				//
 
 				camera = new THREE.PerspectiveCamera( 55, window.innerWidth / window.innerHeight, 1, 20000 );
-				//vtcamera.position.set( 30, 30, 100 );
-				//vt add
-				dolly = new THREE.Object3D();
-				dolly.position.set( 30, 30, 100 );
-				scene.add(dolly);
-				//
-				dolly.add(camera);
-				//vt end
+				camera.position.set( 30, 30, 100 );
 
 				//
 
@@ -168,18 +149,6 @@
 				//
 
 				window.addEventListener( 'resize', onWindowResize, false );
-				//vt add
-				window.addEventListener('vrdisplaypresentchange', function() {
-					console.log('vrdisplaypresentchange: event detected');
-					dolly.position.set( 30, 30, 100 );
-					// if(vrDisplay.isPresenting) {
-					// 	info.textContent = 'Display has started presenting.';
-					// } else {
-					// 	info.textContent = 'Display has stopped presenting.';
-					// }
-					// reportDisplays();
-				});
-				//vt end
 
 			}
 
@@ -192,7 +161,7 @@
 					{
 						textureWidth: 512,
 						textureHeight: 512,
-						waterNormals: new THREE.TextureLoader().load( '../textures/waternormals.jpg', function ( texture ) {
+						waterNormals: new THREE.TextureLoader().load( 'textures/waternormals.jpg', function ( texture ) {
 							texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
 						}),
 						alpha: parameters.alpha,
@@ -214,7 +183,7 @@
 			function setSkybox() {
 
 				var cubeTextureLoader = new THREE.CubeTextureLoader();
-				cubeTextureLoader.setPath( '../textures/cube/skyboxsun25deg/' );
+				cubeTextureLoader.setPath( 'textures/cube/skyboxsun25deg/' );
 
 				cubeMap = cubeTextureLoader.load( [
 					'px.jpg', 'nx.jpg',
@@ -254,11 +223,8 @@
 
 			function animate() {
 
-				//vtrequestAnimationFrame( animate );
-				//vtrender();
-				//vt add
-				renderer.animate( render );
-				//vt end
+				requestAnimationFrame( animate );
+				render();
 				stats.update();
 
 			}

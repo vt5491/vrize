@@ -11,6 +11,7 @@ import { HttpErrorResponse } from '@angular/common/http/src/response';
 import { ParserService } from './parser.service';
 import { BaseService } from './base.service';
 import { UtilsService } from './utils.service';
+import * as _ from 'lodash';
 
 let parserService: ParserService;
 let service : ParserService;
@@ -27,6 +28,7 @@ let testScriptHtml : string;
 let testScriptText : string;
 let testScriptDoc : Document;
 let basicHtml : string;
+let basicDoc : Document;
 let simpleScriptText : string;
 let parser : DOMParser;
 
@@ -168,6 +170,7 @@ describe('ParserService', () => {
     testScriptText = testScriptDoc.scripts[testScriptIndex].innerHTML;
     // debugger;
     // console.log(`testScriptText=${testScriptText}`);
+    basicDoc = parser.parseFromString(basicHtml, "application/xml");
 
   });
 
@@ -179,6 +182,20 @@ describe('ParserService', () => {
   it('should be created',  () => {
     // expect(service).toBeTruthy();
     expect(parserService).toBeTruthy();
+  });
+
+  it('addHtmlTimeStamp works',  () => {
+    service.addHtmlTimeStamp(basicDoc);
+
+    var htmlEl= basicDoc.getElementsByTagName('html')[0]
+
+    let now = (new Date()).toString();
+    // verify an html comment has been inserted right after the html tag appendEl
+    // before the <head> tag.
+    // just check the month and date, as our compare time could be a little different.
+    expect(htmlEl.childNodes[1].textContent.substring(0,41))
+      .toMatch('vrize conversion performed on ' + now.substring(0,10));
+
   });
 
   it('parseHtml works',  () => {
@@ -352,9 +369,13 @@ describe('ParserService', () => {
 
   it('addVrAnimateFn works with a simple script', () => {
     let result = service.addVrAnimateFn(simpleScriptText);
-    console.log(`ut:addVrAnimateFn: result=${result}`);
+    let vrizeRenderName = `${base.appTag}_render`;
+    // console.log(`ut:addVrAnimateFn: result=${result}`);
     // debugger;
     let expectedText = service.getVrAnimateFnTemplate();
+
+    let re = new RegExp(`renderer.animate\\(${vrizeRenderName}\\)`, 'm');
+    expect(expectedText).toMatch(re);
     // expectedText = expectedText.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&')
     expectedText = utils.escapeText(expectedText)
 
@@ -368,7 +389,9 @@ describe('ParserService', () => {
     // verify the original animate function is renamed to 'render'
     // let animateCommentOutRe = new RegExp(`//\s*function animate`, 'm');
     // let renderRe = new RegExp(/\n\s*function render\(/, 'm');
-    let renderRe = new RegExp(/\n\s*function render\(.*\) \{/, 'm');
+    // let vrizeRenderName = `render`;
+    // let renderRe = new RegExp(/\n\s*function render\(.*\) \{/, 'm');
+    let renderRe = new RegExp(`\\n\\s*function ${vrizeRenderName}\\(.*\\) \\{`, 'm');
     expect(result).toMatch(renderRe);
 
     // verify 'requestAnimationFrame is commented out
@@ -388,8 +411,10 @@ describe('ParserService', () => {
 
     expect(ms.length).toEqual(1);
 
-    // verify the original animate function is renamed to 'render'
-    let renderRe = new RegExp(/\n\s*function render/, 'm');
+    // verify the original animate function is renamed to 'vrize_render'
+    let vrizeRenderName = `${base.appTag}_render`;
+    // let renderRe = new RegExp(/\n\s*function render/, 'm');
+    let renderRe = new RegExp(`\\n\\s*function ${vrizeRenderName}`, 'm');
     expect(result).toMatch(renderRe);
 
     // verify 'requestAnimationFrame is commented out
@@ -409,13 +434,47 @@ describe('ParserService', () => {
     expect(extractedPos.z).toEqual(400);
   })
 
-  it('addDolly properly inserts its stub', () => {
+  fit('addDolly properly inserts its stub', () => {
     let newScript = service.addDolly(simpleScriptText);
-    // console.log(`ut.parser.service.spec.ts: newScript=${newScript}`);
+    console.log(`ut.parser.service.spec.ts: newScript=${newScript}`);
 
+    // expect(newScript).toMatch(/dolly\.position\.set\(0, 0, 400\)/, 'm');
     expect(newScript).toMatch(/dolly\.position\.set\(0, 0, 400\)/, 'm');
 
   })
+
+  fit('addDollyToScene works', () => {
+    let newScript = service.addDollyToScene(simpleScriptText);
+    // newScript = utils.escapeText(newScript);
+    console.log(`ut.parser.service.spec.ts: newScript=${newScript}`);
+    // let re = /scene = new THREE.Scene\(\);
+    // let line1 = 'scene = new THREE.Scene\\(\\);\n';
+    let line1 = 'scene = new THREE.Scene\\(\\);\n';
+    let line2 = base.jsMarkupCommentBegin + "\n";
+    // let line2 = _.unescape(base.jsMarkupCommentBegin) + "\n";
+    // line2 = _.unescape(line2);
+    // console.log(`line2=${line2}`);
+    let line3 = 'scene.add\\(dolly\\);';
+
+//     let expectedText = `scene = new THREE.Scene();
+//     .*
+// scene.add(dolly);
+// `
+
+    let re = new RegExp(_.unescape(line1 + line2 + line3), 'm');
+    // let re = new RegExp(expectedText, 'm');
+
+    expect(newScript).toMatch(re);
+
+    // expect(newScript).toMatch(/dolly\.position\.set\(0, 0, 400\)/, 'm');
+  });
+
+  fit('addCameraToDolly works', () => {
+    let newScript = service.addCameraToDolly(simpleScriptText);
+    // console.log(`ut.parser.service.spec.ts: newScript=${newScript}`);
+
+    // expect(newScript).toMatch(/dolly\.position\.set\(0, 0, 400\)/, 'm');
+  });
 
   it('addDollyVar works', () => {
     let newScript = service.addDollyVar(simpleScriptText);

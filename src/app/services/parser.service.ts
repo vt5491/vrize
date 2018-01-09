@@ -7,7 +7,6 @@ import { BaseService } from './base.service';
 import { UtilsService } from './utils.service';
 import * as THREE from 'THREE';
 
-
 @Injectable()
 export class ParserService {
 
@@ -25,6 +24,16 @@ export class ParserService {
 
   }
 
+  // add an html comment as the first line to indicate the date-time this 
+  // conversion was performed.
+  addHtmlTimeStamp(doc) {
+    let htmlEl = doc.getElementsByTagName('html')[0]
+    let now = (new Date()).toString();
+    let timeStampComment = doc.createComment(`vrize conversion performed on ${now}`);
+    console.log(`ParserService.addHtmlTimeStamp: now=${now}`);
+
+    htmlEl.insertBefore(timeStampComment, doc.getElementsByTagName('head')[0]);
+  }
 
   // try to identify the "main" script of the html dom
   // return the index of the main script.  Note, this does not return the text of the
@@ -204,11 +213,13 @@ export class ParserService {
   //
   addVrAnimateFn(text: string) : string {
     let newText = '';
+
+    let vrizeRenderName = `${this.base.appTag}_render`;
     // rename any prior 'animate' fn to 'render'
     newText = text.replace(/(function\s+)(animate)(\s*)(\(.*\))(\s*)(\{)/m, 
       // `${this.base.jsMarkupAlterBegin}\n$1render$2\n${this.base.jsMarkupAlterEnd}`);
       `${this.base.jsMarkupAlterBegin}\n//$1$2$3$4$5$6` + 
-      `\n$1render$4$5$6\n${this.base.jsMarkupAlterEnd}`);
+      `\n$1${vrizeRenderName}$4$5$6\n${this.base.jsMarkupAlterEnd}`);
     // debugger;
 
     // insert the the vr animate fn
@@ -227,9 +238,11 @@ export class ParserService {
   }
 
   getVrAnimateFnTemplate() : string {
+    let vrizeRenderName = `${this.base.appTag}_render`;
+    // let vrizeRenderName = `render`;
     return `
 function animate() {
-  renderer.animate(render);
+  renderer.animate(${vrizeRenderName});
 };
 `
 
@@ -295,6 +308,7 @@ function animate() {
     return newText;
   }
 
+  // add the dolly definition at top of init method, since it has no dependencies.
   addDolly(scriptText: string) : string {
     let newText : string;
 
@@ -303,7 +317,8 @@ function animate() {
     // add in the dolly stub.  A case can be made for doing at the end of the
     // init method, since we need to be sure camera and scene are defined, but
     // for now just assume after the scene object creation will work.
-    let insertRe = new RegExp(/new THREE.Scene\(\);/, 'm');
+    // let insertRe = new RegExp(/new THREE.Scene\(\);/, 'm');
+    let insertRe = new RegExp(/function init\([^\)]*\)\s*\{/, 'm');
 
     let extractedPos = this.extractInitCameraPos(scriptText);
 
@@ -313,9 +328,40 @@ function animate() {
     if (extractedPos) {
       insertText += `dolly.position.set(${extractedPos.x}, ${extractedPos.y}, ${extractedPos.z});\n`;
     }
-    insertText += "scene.add(dolly);\n";
-    insertText += "dolly.add(camera);\n";
+    // insertText += "scene.add(dolly);\n";
+    // insertText += "dolly.add(camera);\n";
 
+    insertText = this.utils.jsCommentSandwich(insertText);
+
+    newText = scriptText.replace(insertRe, `$&\n${insertText}\n`);
+
+    return newText;
+  }
+
+  // add the dolly to the scene after scene has been defined.
+  addDollyToScene(scriptText: string) : string {
+    let newText : string;
+
+    let insertRe = new RegExp(/new THREE.Scene\(\);/, 'm');
+
+    // let insertText = "dolly.add(camera);\n";
+    let insertText = "scene.add(dolly);\n";
+    insertText = this.utils.jsCommentSandwich(insertText);
+
+    newText = scriptText.replace(insertRe, `$&\n${insertText}\n`);
+
+    return newText;
+  };
+
+  // we need to add the camera to the dolly after the camera has been initialized
+  // so we have to separate out from the dolly defintion (method 'addDolly')
+  addCameraToDolly(scriptText: string) : string {
+    let newText : string;
+
+    let insertRe = new RegExp(/new THREE.Scene\(\);/, 'm');
+
+    // let insertText = "dolly.add(camera);\n";
+    let insertText = "scene.add(dolly);\n";
     insertText = this.utils.jsCommentSandwich(insertText);
 
     newText = scriptText.replace(insertRe, `$&\n${insertText}\n`);

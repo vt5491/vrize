@@ -33,23 +33,16 @@
 		<div id="container"></div>
 		<div id="info"><a href="https://threejs.org" target="_blank" rel="noopener">three.js</a> webgl - geometries</div>
 
-		<script src="../../build/three.js"></script>
+		<script src="../build/three.js"></script>
 
-		<script src="../js/Detector.js"></script>
-		<script src="../js/libs/stats.min.js"></script>
-		<!--vt add -->
-		<script src="../js/vr/WebVR.js"></script>
-		<!--vt end -->
-
+		<script src="js/Detector.js"></script>
+		<script src="js/libs/stats.min.js"></script>
 
 		<script>
 
 			if ( ! Detector.webgl ) Detector.addGetWebGLMessage();
 
 			var camera, scene, renderer, stats;
-			//vt add
-			var dolly;
-			//vt end
 
 			init();
 			animate();
@@ -59,15 +52,7 @@
 				var container = document.getElementById( 'container' );
 
 				camera = new THREE.PerspectiveCamera( 45, window.innerWidth / window.innerHeight, 1, 2000 );
-				//vtcamera.position.y = 400;
-				//vt add
-				dolly = new THREE.Object3D();
-				dolly.position.y = 400;
-				dolly.position.z = 800;
-				// scene.add(dolly);
-				//
-				dolly.add(camera);
-				//vt end
+				camera.position.y = 400;
 
 				scene = new THREE.Scene();
 
@@ -80,7 +65,7 @@
 				camera.add( pointLight );
 				scene.add( camera );
 
-				var map = new THREE.TextureLoader().load( '../textures/UV_Grid_Sm.jpg' );
+				var map = new THREE.TextureLoader().load( 'textures/UV_Grid_Sm.jpg' );
 				map.wrapS = map.wrapT = THREE.RepeatWrapping;
 				map.anisotropy = 16;
 
@@ -153,14 +138,8 @@
 				renderer = new THREE.WebGLRenderer( { antialias: true } );
 				renderer.setPixelRatio( window.devicePixelRatio );
 				renderer.setSize( window.innerWidth, window.innerHeight );
-				//vt add
-				renderer.vr.enabled = true;
-				//vt end
 
 				container.appendChild( renderer.domElement );
-				//vt add
-				container.appendChild(WEBVR.createButton(renderer));
-				//vt end
 
 				stats = new Stats();
 				container.appendChild( stats.dom );
@@ -168,14 +147,6 @@
 				//
 
 				window.addEventListener( 'resize', onWindowResize, false );
-
-				//vt add
-				window.addEventListener('vrdisplaypresentchange', function() {
-					console.log('vrdisplaypresentchange: event detected');
-					dolly.position.y = 400;
-					dolly.position.z = 800;
-				})
-				//vt end
 
 			}
 
@@ -192,12 +163,9 @@
 
 			function animate() {
 
-				// requestAnimationFrame( animate );
-        //
-				// render();
-				//vt add
-				renderer.animate( render );
-				//vt end
+				requestAnimationFrame( animate );
+
+				render();
 				stats.update();
 
 			}
