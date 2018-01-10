@@ -1,24 +1,26 @@
 <div class='controls'>
 </div>
 <div>
-  <!-- <form id='input-form' (ngSubmit)="onSubmit()"> -->
   <form id='input-form' #f='ngForm' (ngSubmit)="onSubmit(f)">
-    <!-- <button id='vrize-it' type='submit' (click)="userConvert()">Convert File 2</button> -->
-    <!-- <button id='vrize-it' type='submit' >Convert File 4</button><br/> -->
-    <button id='vrize-it' >Convert File 4</button><br/>
+    <button id='vrize-it' >Convert File</button><br/>
+    <!-- <button id='vrize-it' (click)="7" >Convert File</button><br/> -->
+    <br/>
+    <!-- <ul>
+      <li *ngFor="let value of values" (click)="select(value.value)">{{value.label}}</li>
+    </ul> -->
+    <select class="form-control" id="testFileId" #testFile (change)="onChange(testFile.value)" required>
+    <!-- <select class="form-control" id="testFileId" ngControl="testFile" #testFile (change)="onChange(testFile.value)" required> -->
+      <option *ngFor="let fn of testFiles" [value]="fn">{{fn}}</option>
+    </select>
+    <p>
     Input:
     <br/>
     <textarea id='inputText' name="inputText" ngModel rows="4" cols="50">
-      <!-- <div id='inputText' contenteditable="true">
-      Enter mixed html/javascript file contents here...
-    </div> -->
   </textarea>
   <div>
     <p>
       Output:
       <br/>
-      <!-- <textarea id='outputText' name='outputText' ngModel="outputText" rows="4" cols="50"> -->
-      <!-- <textarea id='outputText' name='outputText' rows="4" cols="50"> -->
       <textarea id='outputText' name='outputText' [ngModel]="outputText" rows="4" cols="50">
       </textarea>
     </div>

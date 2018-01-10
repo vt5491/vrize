@@ -15,7 +15,7 @@ export class ParserService {
   // Parse the html into a dom, so we can subsquently extract things such as the main
   // script.
   parseHtml(html : string) : Document {
-    console.log(`ParserService.parseHtml: entered`);
+    // console.log(`ParserService.parseHtml: entered`);
     
     var parser = new DOMParser();
     var doc = parser.parseFromString(html, "text/html");
@@ -30,7 +30,7 @@ export class ParserService {
     let htmlEl = doc.getElementsByTagName('html')[0]
     let now = (new Date()).toString();
     let timeStampComment = doc.createComment(`vrize conversion performed on ${now}`);
-    console.log(`ParserService.addHtmlTimeStamp: now=${now}`);
+    // console.log(`ParserService.addHtmlTimeStamp: now=${now}`);
 
     htmlEl.insertBefore(timeStampComment, doc.getElementsByTagName('head')[0]);
   }
@@ -110,20 +110,22 @@ export class ParserService {
 
   // addWebVrScript(parentNode: HTMLElement) {
   addWebVrScript(doc: Document, threeJsScriptIndex: number) {
+    // add vrize_kbd.js
     let el = document.createElement('script');
-    el.setAttribute('src', 'js/vr/WebVR.js');
+    el.setAttribute('src', 'js/vrize/vrize_kbd.js');
 
-    // parentNode.appendChild(el);
-    // doc.getElementsByTagName('script')[threeJsScriptIndex].appendChild(el);
-    // doc.getElementsByTagName('script')[threeJsScriptIndex].appendChild(el);
-    // debugger;
     let refNode = doc.getElementsByTagName('script')[threeJsScriptIndex];
-    // refNode.parentNode.insertBefore(el, refNode.nextSibling);
-    // this.utils.insertBefore(el, refNode);
     this.utils.insertAfter(el, refNode);
 
     // wrap the new node in a comment bracket
-    // this.utils.htmlCommentSandwich(doc, refNode);
+    this.utils.htmlCommentSandwich(doc, el);
+
+    // add webVr script
+    el = document.createElement('script');
+    el.setAttribute('src', 'js/vr/WebVR.js');
+    this.utils.insertAfter(el, refNode);
+
+    // wrap the new node in a comment bracket
     this.utils.htmlCommentSandwich(doc, el);
   }
 
@@ -264,8 +266,19 @@ function animate() {
     let extractedPos = new THREE.Vector3();
     let reMatch = []
 
-    // look for camera.position.n statements
-    // let re = new RegExp('camera\.position\.[xyz]\s*=\s*([\d]+)', 'gm'); 
+    // camera.position.set( 30, 30, 100 );
+    // if( scriptText.match(//)) {
+    if (reMatch = scriptText.match(/camera\.position\.set\(\s*(\d+)[,|\s]+(\d+)[,|\s]+(\d+)\s*\)/m) ) {
+    // if (reMatch == []) {
+      // console.log(`position.set detected,re1=${reMatch[1]}`);
+      extractedPos.x = parseInt(reMatch[1]);
+      extractedPos.y = parseInt(reMatch[2]);
+      extractedPos.z = parseInt(reMatch[3]);
+    }
+    else {
+      // console.log(`position.x detected`);
+
+    // look for 'camera.position.n' statements.
     // Note: we don't specify 'g' (global search), so that the bracketing
     // will work.  Unfortunately, this means we pull the first match.  Presumably
     // if multiple dimensions are set, they won't be using this syntax.
@@ -288,6 +301,7 @@ function animate() {
           extractedPos.z = numericPos;
           break;
       }
+    }
     }
 
     return extractedPos;
@@ -326,7 +340,7 @@ function animate() {
     // let insertText = "dolly.position.set(0, 0, 400);"
     insertText += "dolly = new THREE.Object3D();\n";
     if (extractedPos) {
-      insertText += `dolly.position.set(${extractedPos.x}, ${extractedPos.y}, ${extractedPos.z});\n`;
+      insertText += `dolly.position.set(${extractedPos.x}, ${extractedPos.y}, ${extractedPos.z});`;
     }
     // insertText += "scene.add(dolly);\n";
     // insertText += "dolly.add(camera);\n";
@@ -345,7 +359,7 @@ function animate() {
     let insertRe = new RegExp(/new THREE.Scene\(\);/, 'm');
 
     // let insertText = "dolly.add(camera);\n";
-    let insertText = "scene.add(dolly);\n";
+    let insertText = "scene.add(dolly);";
     insertText = this.utils.jsCommentSandwich(insertText);
 
     newText = scriptText.replace(insertRe, `$&\n${insertText}\n`);
@@ -358,10 +372,9 @@ function animate() {
   addCameraToDolly(scriptText: string) : string {
     let newText : string;
 
-    let insertRe = new RegExp(/new THREE.Scene\(\);/, 'm');
+    let insertRe = new RegExp(/new THREE.PerspectiveCamera\([^\)]*\);/, 'm');
 
-    // let insertText = "dolly.add(camera);\n";
-    let insertText = "scene.add(dolly);\n";
+    let insertText = "dolly.add(camera);";
     insertText = this.utils.jsCommentSandwich(insertText);
 
     newText = scriptText.replace(insertRe, `$&\n${insertText}\n`);

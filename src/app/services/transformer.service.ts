@@ -35,6 +35,8 @@ export class TransformerService {
     // add dolly support
     newText = this.parser.addDollyVar(newText);
     newText = this.parser.addDolly(newText);
+    newText = this.parser.addDollyToScene(newText);
+    newText = this.parser.addCameraToDolly(newText);
 
     doc.scripts[mainScriptIndex].innerHTML = newText;
     return doc;

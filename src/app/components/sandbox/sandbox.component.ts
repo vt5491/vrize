@@ -11,14 +11,14 @@ import { ParserService } from '../../services/parser.service';
 })
 export class SandboxComponent implements OnInit {
 
-  constructor(utils: UtilsService, parser: ParserService) { 
-    console.log('SandboxComponent.ctor: entered');
+  constructor(utils: UtilsService, parser: ParserService) {
+    // console.log('SandboxComponent.ctor: entered');
 
     // let txtObs = utils.getText('../../../assets/test/abc.json');
     let txtObs = utils.getText('../../../assets/test/abc.html');
 
-    console.log(`Sandbox.ctor: txtObs=${txtObs}`);
-    
+    // console.log(`Sandbox.ctor: txtObs=${txtObs}`);
+
     txtObs.subscribe(
       data => {
         // debugger;
@@ -32,7 +32,7 @@ export class SandboxComponent implements OnInit {
     );
 
     parser.parseHtml('<abc>');
-    
+
   }
 
   ngOnInit() {

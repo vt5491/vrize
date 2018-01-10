@@ -56,7 +56,7 @@ describe('UtilsService', () => {
     let endTag = base.htmlMarkupCommentEnd;
 
     let strResult = new XMLSerializer().serializeToString(simpleDoc);
-    console.log(`strResult=${strResult}`);
+    // console.log(`strResult=${strResult}`);
     let re = new RegExp(`\<\!--${beginTag}--\>[\n]*.*\<\!--${endTag}--\>`);
     expect(strResult).toMatch(re);
   })
@@ -68,7 +68,7 @@ describe('UtilsService', () => {
     let endTag = base.jsMarkupAlterEnd;
 
     expect(result).toEqual(`${beginTag}\nabc\n${endTag}`);
-    console.log(`result=${result}`);
+    // console.log(`result=${result}`);
 
   })
   // it('getFileText abc.html works', inject([UtilsService, HttpClient],

@@ -138,7 +138,7 @@ describe('ParserService', () => {
   });
 
   beforeEach(() => {
-    console.log(`ut.beforeEach: entered`);
+    // console.log(`ut.beforeEach: entered`);
 
     // TestBed.resetTestEnvironment();
     TestBed.configureTestingModule({
@@ -300,16 +300,18 @@ describe('ParserService', () => {
     let result = service.addWebVrScript(doc, threeJsScriptIndex);
 
     let scriptEls = doc.getElementsByTagName('script');
-    expect(scriptEls.length).toEqual(scriptCnt + 1);
+    expect(scriptEls.length).toEqual(scriptCnt + 2);
 
 
     // verify the three.js is unaffected
     scriptEls[threeJsScriptIndex].getAttribute('src').match(/three\.js/);
     // and the script tag after it is webVr.
     scriptEls[threeJsScriptIndex + 1].getAttribute('src').match(/js\/vr\/WebVR.js/);
+    // and the script tag after that is vrize_kbd.
+    scriptEls[threeJsScriptIndex + 2].getAttribute('src').match(/js\/vrize\/vrize_kbd.js/);
 
-    console.log(`result=${doc.scripts[threeJsScriptIndex + 1].getAttribute('src')}`);
-    console.log(`result=${doc.documentElement.innerHTML}`);
+    // console.log(`result=${doc.scripts[threeJsScriptIndex + 1].getAttribute('src')}`);
+    // console.log(`result=${doc.documentElement.innerHTML}`);
 
     // make sure it's wrapped in a coment sandwich
     // believe it or not, this is really hard to do, so skip it.
@@ -344,7 +346,7 @@ describe('ParserService', () => {
     expect(result['newText']).toMatch(re);
     expect(result['rendererName']).toEqual('renderer');
     // expect(testScriptHtml).toMatch(/renderer\.vr\.enabled = true;/gm);
-    console.log(`ut:addVrRenderer: result=${result}`);
+    // console.log(`ut:addVrRenderer: result=${result}`);
 
   })
 
@@ -358,12 +360,12 @@ describe('ParserService', () => {
     //Don't know why I have to escape it in the ut, but not in the main code..
     // insertText = insertText.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&')
     insertText = utils.escapeText(insertText);
-    console.log(`ut:insertText=${insertText}`);
+    // console.log(`ut:insertText=${insertText}`);
 
     let re = new RegExp(insertText, "m");
 
     expect(result).toMatch(re, 'm');
-    console.log(`ut:result=${result}`);
+    // console.log(`ut:result=${result}`);
     // debugger;
   });
 
@@ -427,26 +429,35 @@ describe('ParserService', () => {
 
   it('extractInitCameraPos works on a simple script', () => {
     let extractedPos = service.extractInitCameraPos(simpleScriptText);
-    // console.log(`ut: extractedPos=${extractedPos}`);
 
-    // expect(extractedPos.x).toEqual(0);
-    // expect(extractedPos.y).toEqual(0);
     expect(extractedPos.z).toEqual(400);
   })
 
-  fit('addDolly properly inserts its stub', () => {
+  it('extractInitCameraPos works on position.set', () => {
+    let testScript = `
+camera = new THREE.PerspectiveCamera( 55, window.innerWidth / window.innerHeight, 1, 20000 );
+camera.position.set( 30, 40, 100 );
+    `
+    let extractedPos = service.extractInitCameraPos(testScript);
+
+    expect(extractedPos.x).toEqual(30);
+    expect(extractedPos.y).toEqual(40);
+    expect(extractedPos.z).toEqual(100);
+  })
+
+  it('addDolly properly inserts its stub', () => {
     let newScript = service.addDolly(simpleScriptText);
-    console.log(`ut.parser.service.spec.ts: newScript=${newScript}`);
+    // console.log(`ut.parser.service.spec.ts: newScript=${newScript}`);
 
     // expect(newScript).toMatch(/dolly\.position\.set\(0, 0, 400\)/, 'm');
     expect(newScript).toMatch(/dolly\.position\.set\(0, 0, 400\)/, 'm');
 
   })
 
-  fit('addDollyToScene works', () => {
+  it('addDollyToScene works', () => {
     let newScript = service.addDollyToScene(simpleScriptText);
     // newScript = utils.escapeText(newScript);
-    console.log(`ut.parser.service.spec.ts: newScript=${newScript}`);
+    // console.log(`ut.parser.service.spec.ts: newScript=${newScript}`);
     // let re = /scene = new THREE.Scene\(\);
     // let line1 = 'scene = new THREE.Scene\\(\\);\n';
     let line1 = 'scene = new THREE.Scene\\(\\);\n';
@@ -469,16 +480,22 @@ describe('ParserService', () => {
     // expect(newScript).toMatch(/dolly\.position\.set\(0, 0, 400\)/, 'm');
   });
 
-  fit('addCameraToDolly works', () => {
+  it('addCameraToDolly works', () => {
     let newScript = service.addCameraToDolly(simpleScriptText);
     // console.log(`ut.parser.service.spec.ts: newScript=${newScript}`);
+    let line1 = 'camera = new THREE.PerspectiveCamera.*\\n';
+    let line2 = base.jsMarkupCommentBegin + "\n";
+    let line3 = 'dolly.add\\(camera\\);';
 
-    // expect(newScript).toMatch(/dolly\.position\.set\(0, 0, 400\)/, 'm');
+    // let re = new RegExp(_.unescape(line1 + line2 + line3), 'm');
+    let re = new RegExp(line1 + line2 + line3, 'm');
+
+    expect(newScript).toMatch(re);
   });
 
   it('addDollyVar works', () => {
     let newScript = service.addDollyVar(simpleScriptText);
-    console.log(`ut.parser.service.spec.ts: newScript=${newScript}`);
+    // console.log(`ut.parser.service.spec.ts: newScript=${newScript}`);
     expect(newScript).toMatch(/var dolly;/, 'm');
   })
 

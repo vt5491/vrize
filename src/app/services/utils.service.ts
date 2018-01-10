@@ -15,7 +15,7 @@ export class UtilsService {
   // return the (program) text contained in the specified file.
   getText(fn : string): Observable<any> {
   // getText(fn : string): Subscription {
-    console.log(`Utils.getText: fn=${fn}`);
+    // console.log(`Utils.getText: fn=${fn}`);
     
     // return this.http.get(fn)
     //                 .catch((error: any) => console.log(error)); 
