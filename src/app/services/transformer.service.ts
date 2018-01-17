@@ -38,6 +38,9 @@ export class TransformerService {
     newText = this.parser.addDollyToScene(newText);
     newText = this.parser.addCameraToDolly(newText);
 
+    // add the 'vrdisplayactivate' handler (so vr-mode is transitive)
+    newText = this.parser.addVrDisplayActivate(newText, rendererName);
+
     doc.scripts[mainScriptIndex].innerHTML = newText;
     return doc;
   }

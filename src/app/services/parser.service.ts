@@ -382,6 +382,33 @@ function animate() {
     return newText;
   }
 
+  addVrDisplayActivate(scriptText: string, rendererName: string) : string {
+    let newText : string;
+
+    console.log(`Parser.addVrDisplayActivate:`);
+    // debugger;
+    
+    newText = this.getVrDisplayActivateTemplate(rendererName);
+
+    newText = this.utils.jsCommentSandwich(newText);
+
+    // let re = new RegExp(`${elName}\\.appendChild\\(\\s*${rendererName}\\.domElement\\s*\\)`, 'm');
+    // newText = text.replace(re2, `$&\n${insertText}\n`);
+
+    // simply put it at the end of the script
+    return scriptText + newText;
+  }
+
+  getVrDisplayActivateTemplate(renderer: string) : string {
+    let template = `
+    window.addEventListener('vrdisplayactivate', function () {
+      ${renderer}.vr.getDevice().requestPresent([{ source: ${renderer}.domElement }])    
+    });
+    `
+
+    return template;
+  }
+
   // getAddDollyTemplate() : string {
 
   // }

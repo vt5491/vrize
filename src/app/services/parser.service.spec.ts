@@ -381,7 +381,7 @@ describe('ParserService', () => {
     // expectedText = expectedText.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&')
     expectedText = utils.escapeText(expectedText)
 
-    let re = new RegExp(`\n\s*${expectedText}\s*\n`, 'gm');
+    re = new RegExp(`\n\s*${expectedText}\s*\n`, 'gm');
     // let re = new RegExp(`{expectedText}`, 'gm');
 
     let ms = result.match(re);
@@ -497,6 +497,16 @@ camera.position.set( 30, 40, 100 );
     let newScript = service.addDollyVar(simpleScriptText);
     // console.log(`ut.parser.service.spec.ts: newScript=${newScript}`);
     expect(newScript).toMatch(/var dolly;/, 'm');
+  })
+
+  it('addVrDisplayActivate works', () => {
+    let renderer = "testRenderer";
+    let newScript = service.addVrDisplayActivate(simpleScriptText, renderer);
+    console.log(`ut.parser.service.spec.ts: newScript=${newScript}`);
+    expect(newScript).toMatch(/window.addEventListener\(\'vrdisplayactivate\'/, 'm');
+
+    expect(newScript).toMatch(/testRenderer.vr.getDevice\(\).requestPresent/, 'm');
+
   })
 
 });
