@@ -39,7 +39,10 @@ export class TransformerService {
     newText = this.parser.addCameraToDolly(newText);
 
     // add the 'vrdisplayactivate' handler (so vr-mode is transitive)
-    newText = this.parser.addVrDisplayActivate(newText, rendererName);
+    // Note: this is only needed if you don't have a customized 'examples/js/vr/WebVR.js'.
+    // A customized webvr button function will do this automatically for us.
+    // cf https://github.com/mrdoob/three.js/issues/13105
+    // newText = this.parser.addVrDisplayActivate(newText, rendererName);
 
     doc.scripts[mainScriptIndex].innerHTML = newText;
     return doc;

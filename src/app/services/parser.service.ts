@@ -401,8 +401,8 @@ function animate() {
 
   getVrDisplayActivateTemplate(renderer: string) : string {
     let template = `
-    window.addEventListener('vrdisplayactivate', function () {
-      ${renderer}.vr.getDevice().requestPresent([{ source: ${renderer}.domElement }])    
+    window.addEventListener('vrdisplayactivate', function (event) {
+      event.display.requestPresent([{ source: ${renderer}.domElement }]);
     });
     `
 

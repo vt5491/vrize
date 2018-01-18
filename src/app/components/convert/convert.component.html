@@ -2,7 +2,6 @@
 </div>
 <div>
   <form id='input-form' #f='ngForm' (ngSubmit)="onSubmit(f)">
-    <button id='vrize-it' >Convert File</button><br/>
     <!-- <button id='vrize-it' (click)="7" >Convert File</button><br/> -->
     <br/>
     <!-- <ul>
@@ -13,10 +12,14 @@
       <option *ngFor="let fn of testFiles" [value]="fn">{{fn}}</option>
     </select>
     <p>
+    <button id='vrize-it' >Convert File</button><br/>
+    <p>
     Input:
     <br/>
     <textarea id='inputText' name="inputText" ngModel rows="4" cols="50">
   </textarea>
+  <p>
+  <button id='vrize-it-input' >Convert Input Text</button><br/>
   <div>
     <p>
       Output:

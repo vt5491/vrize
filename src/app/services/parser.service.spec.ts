@@ -505,7 +505,8 @@ camera.position.set( 30, 40, 100 );
     console.log(`ut.parser.service.spec.ts: newScript=${newScript}`);
     expect(newScript).toMatch(/window.addEventListener\(\'vrdisplayactivate\'/, 'm');
 
-    expect(newScript).toMatch(/testRenderer.vr.getDevice\(\).requestPresent/, 'm');
+    // expect(newScript).toMatch(/testRenderer.vr.getDevice\(\).requestPresent/, 'm');
+    expect(newScript).toMatch(/event\.display\.requestPresent\(\[\{ source: testRenderer.domElement /, 'm');
 
   })
 
