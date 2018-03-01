@@ -310,6 +310,15 @@ describe('ParserService', () => {
     // and the script tag after that is vrize_kbd.
     scriptEls[threeJsScriptIndex + 2].getAttribute('src').match(/js\/vrize\/vrize_kbd.js/);
 
+    // make sure the text has a lib per line e.g not all placed on one line
+    // console.log(`ut.addWebVrScript: doc.innerHTML=${doc.documentElement.innerHTML}`);
+    // console.log(`ut.addWebVrScript: doc.outerHTML=${doc.documentElement.innerHTML}`);
+    // let resultText = doc.documentElement.innerHTML;
+    //
+    // let pat = `three\\.js.*</script\>\\n.*<!--${base.jsMarkupCommentBegin}`;
+    // // expect(resultText).toMatch(/three\.js.*\</script\>\n.*<--!${})
+    // expect(resultText).toMatch(new RegExp(pat));
+
     // console.log(`result=${doc.scripts[threeJsScriptIndex + 1].getAttribute('src')}`);
     // console.log(`result=${doc.documentElement.innerHTML}`);
 

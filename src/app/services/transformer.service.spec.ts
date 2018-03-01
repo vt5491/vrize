@@ -11,7 +11,7 @@ import { HttpClientTestingModule, HttpTestingController } from '@angular/common/
 
 
 let service : TransformerService;
-let basicHtml = 
+let basicHtml =
 `<html>
   <head>
     <script src="../../build/three.js"></script>
@@ -30,9 +30,34 @@ let basicHtml =
 </html>
   `
 
+// This represents the raw result returned for parsing processing
+let basicPostParseText =
+`<html>
+  <head>
+    <script src="../build/three.js"></script><!--vrize add start--><script src="js/vr/WebVR.js"></script><!--vrize add end--><!--vrize add start--><script src="js/vrize/vrize_kbd.js"></script><!--vrize add end-->
+    <script>
+        var a=7;
+        init();
+        animate();
+        function init() {
+          renderer = new THREE.WebGLRenderer();
+//vrize add start
+renderer.vr.enabled = true;
+//vrize add end
+          document.body.appendChild( renderer.domElement );
+        }
+    </script>
+  </head>
+  <body>
+  </body>
+</html>
+`
+// let parser = new DOMParser();
+let base : BaseService;
 let domParser = new DOMParser();
-
 let basicDoc : Document;
+let basicPostParseDoc : Document;
+// let base = TestBed.get(BaseService);
 
 describe('TransformerService', () => {
 
@@ -42,7 +67,9 @@ describe('TransformerService', () => {
       providers: [TransformerService, ParserService, BaseService, UtilsService, HttpClient]
     });
     service = TestBed.get(TransformerService);
+    base = TestBed.get(BaseService);
     basicDoc = domParser.parseFromString(basicHtml, "text/html");
+    basicPostParseDoc = domParser.parseFromString(basicPostParseText, "text/html");
   });
 
   it('should be created', inject([TransformerService], (service: TransformerService) => {
@@ -59,5 +86,32 @@ describe('TransformerService', () => {
 
     // debugger;
     expect(result.nodeName).toMatch('#document');
+  })
+
+  it ('beautifyJsLibChainHtml produces one lib per line', () => {
+    // expect(7).toEqual(7);
+    // implicitly modifies the passed doc object
+    let resultText = service.beautifyJsLibChainHtml(basicPostParseText);
+
+    // make sure the text has a lib per line e.g not all placed on one line
+    // console.log(`ut.addWebVrScript: doc.innerHTML=${doc.documentElement.innerHTML}`);
+    // console.log(`ut.addWebVrScript: doc.outerHTML=${doc.documentElement.innerHTML}`);
+    // let resultText = doc.documentElement.innerHTML;
+    //
+    // console.log(`basicPostParseText=${basicPostParseText}`);
+    console.log(`resultText=${resultText}`);
+    let pat = `three\\.js.*</script\>\\n.*<!--${base.htmlMarkupCommentBegin}`;
+    // // expect(resultText).toMatch(/three\.js.*\</script\>\n.*<--!${})
+    expect(resultText).toMatch(new RegExp(pat, 'm'));
+  })
+
+  fit ('beautifyJsLibChainHtml produces one lib per line', () => {
+    // Since this is not an integration test, and the mainScriptIndex is set by
+    // the parser service, we have to manually set this variable ourseleves, with
+    // unfortunate side effect that we couple this test to 'basicPostParseDoc' as it's
+    // currently written.
+    service.mainScriptIndex = 3;
+
+    let resultDoc = service.beautifyMainScript(basicPostParseDoc);
   })
 });

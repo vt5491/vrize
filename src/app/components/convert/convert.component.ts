@@ -73,6 +73,7 @@ export class ConvertComponent implements OnInit {
           // this.outputText = new XMLSerializer().serializeToString(this.inputDoc);
           // Note: we have to call decodeURI to get rid of things like '&lt;' in the
           // javascript (XMLSerializer will escape all the javascript)
+          // debugger;
           this.outputText = _.unescape(
           new XMLSerializer().serializeToString(this.inputDoc));
           console.log(`outputText=${this.outputText}`);

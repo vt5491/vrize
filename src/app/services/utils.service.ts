@@ -54,9 +54,12 @@ export class UtilsService {
     let endTag = this.base.htmlMarkupCommentEnd;
 
     let beginNode = doc.createComment(beginTag);
+    // beginNode.innerHML
+    // debugger;
     let endNode = doc.createComment(endTag);
 
     // return `${beginTag}\n${text}\n${endTag}`;
+    // this.insertBefore(doc.createElement("br"), refNode);
     this.insertBefore(beginNode, refNode); 
     this.insertAfter(endNode, refNode); 
   }
