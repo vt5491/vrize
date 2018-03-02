@@ -10,6 +10,13 @@ import * as THREE from 'THREE';
 @Injectable()
 export class ParserService {
 
+// if a regex is used more than once, you might want to consider making it
+// a class wide property, so you use a consistent pattern throughout the code.
+extractCameraDeclarationRegEx = new RegExp(/var.*camera.*;/,'m'); 
+extractCameraCreationRegEx = new RegExp(/new THREE.PerspectiveCamera\([^\)]*\);/, 'm');
+extractCameraCreationLineRegEx = new RegExp(/^.*new THREE.PerspectiveCamera\([^\)]*\);/, 'm');
+ 
+
   constructor(private base: BaseService, private utils: UtilsService, private http: HttpClient) { }
 
   // Parse the html into a dom, so we can subsquently extract things such as the main
@@ -109,24 +116,68 @@ export class ParserService {
   }
 
   // addWebVrScript(parentNode: HTMLElement) {
-  addWebVrScript(doc: Document, threeJsScriptIndex: number) {
-    // add vrize_kbd.js
-    let el = document.createElement('script');
-    el.setAttribute('src', 'js/vrize/vrize_kbd.js');
+  //TODO: rename to addLibs
+  //Defunct: replaced by addLibs
+  // addWebVrScript(doc: Document, threeJsScriptIndex: number) {
+  //   // add vrize_kbd.js
+  //   let el = document.createElement('script');
+  //   el.setAttribute('src', 'js/vrize/vrize_kbd.js');
+
+  //   let refNode = doc.getElementsByTagName('script')[threeJsScriptIndex];
+  //   this.utils.insertAfter(el, refNode);
+
+  //   // wrap the new node in a comment bracket
+  //   // this.utils.htmlCommentSandwich(doc, el);
+  //   this.utils.htmlCommentPost(doc, el);
+
+  //   // add webVr script
+  //   el = document.createElement('script');
+  //   el.setAttribute('src', 'js/vr/WebVR.js');
+  //   this.utils.insertAfter(el, refNode);
+
+  //   // wrap the new node in a comment bracket
+  //   // this.utils.htmlCommentSandwich(doc, el);
+  //   // this.utils.htmlCommentPre(doc, el);
+  // }
+
+  addLibs(doc: Document, threeJsScriptIndex: number) {
+    // // add vrize_kbd.js
+    // let el = document.createElement('script');
+    // el.setAttribute('src', 'js/vrize/vrize_kbd.js');
 
     let refNode = doc.getElementsByTagName('script')[threeJsScriptIndex];
-    this.utils.insertAfter(el, refNode);
+    // this.utils.insertAfter(el, refNode);
 
-    // wrap the new node in a comment bracket
-    this.utils.htmlCommentSandwich(doc, el);
+    // // wrap the new node in a comment bracket
+    // // this.utils.htmlCommentSandwich(doc, el);
+    // this.utils.htmlCommentPost(doc, el);
 
     // add webVr script
-    el = document.createElement('script');
-    el.setAttribute('src', 'js/vr/WebVR.js');
-    this.utils.insertAfter(el, refNode);
+    let webVrEl = document.createElement('script');
+    webVrEl.setAttribute('src', 'js/vr/WebVR.js');
+    this.utils.insertAfter(webVrEl, refNode);
+    this.utils.htmlCommentPre(doc, webVrEl);
+
+    // add vrize_kbd.js
+    let vrizeKbdEl = document.createElement('script');
+    vrizeKbdEl.setAttribute('src', 'js/vrize/vrize_kbd.js');
+    this.utils.insertAfter(vrizeKbdEl, webVrEl);
+
+    // add vrize_controller.js
+    let vrizeControllerEl = document.createElement('script');
+    vrizeControllerEl.setAttribute('src', 'js/vrize/vrize_controller.js');
+    this.utils.insertAfter(vrizeControllerEl, vrizeKbdEl);
+
+    // add vrize_controller.js
+    let vrControllerEl = document.createElement('script');
+    vrControllerEl.setAttribute('src', 'js/vr/VRController.js');
+    this.utils.insertAfter(vrControllerEl, vrizeControllerEl);
+
+    this.utils.htmlCommentPost(doc, vrControllerEl);
 
     // wrap the new node in a comment bracket
-    this.utils.htmlCommentSandwich(doc, el);
+    // this.utils.htmlCommentSandwich(doc, el);
+    // this.utils.htmlCommentPre(doc, el);
   }
 
   // script parsing
@@ -213,6 +264,10 @@ export class ParserService {
   }
 
   //
+  // This does several things.  It:
+  // 1. adds a new "animate" function
+  // 2. renames the original "animate" function to 'vrize_render'
+  // 3. add statement 'THREE.VRController.update();' to the 'vrize_render' fn.
   addVrAnimateFn(text: string) : string {
     let newText = '';
 
@@ -235,6 +290,13 @@ export class ParserService {
       `${this.base.jsMarkupCommentOutBegin}\n//$&\n${this.base.jsMarkupCommentOutEnd}`);
     // debugger;
     // newText = newText.replace(/(\n)(^\s*requestAnimationFrame)/m, `//$1`);
+    // add VRController.update
+    let vrControllerRe = 
+      new RegExp(`function ${vrizeRenderName}[\\s\\S]+${this.base.jsMarkupCommentOutEnd}`, 'm');
+
+    let controllerUpdateText = this.utils.jsCommentSandwich('THREE.VRController.update();');
+    newText = newText.replace(vrControllerRe, `$&\n${controllerUpdateText}`);
+    
 
     return newText;
   }
@@ -312,7 +374,9 @@ function animate() {
     // look for the 'var=camera' line and add it after that
     let newText : string;
 
-    let insertRe = new RegExp(/var.*camera.*;/,'m');
+    // let insertRe = new RegExp(/var.*camera.*;/,'m');
+    // let insertRe = this.extractCameraDeclarationRegEx();
+    let insertRe = this.extractCameraDeclarationRegEx;
 
     let insertText = 'var dolly;';
     insertText = this.utils.jsCommentSandwich(insertText);
@@ -372,7 +436,9 @@ function animate() {
   addCameraToDolly(scriptText: string) : string {
     let newText : string;
 
-    let insertRe = new RegExp(/new THREE.PerspectiveCamera\([^\)]*\);/, 'm');
+    // let insertRe = new RegExp(/new THREE.PerspectiveCamera\([^\)]*\);/, 'm');
+    // let insertRe = this.extractCameraCreationRegEx();
+    let insertRe = this.extractCameraCreationRegEx;
 
     let insertText = "dolly.add(camera);";
     insertText = this.utils.jsCommentSandwich(insertText);
@@ -380,6 +446,52 @@ function animate() {
     newText = scriptText.replace(insertRe, `$&\n${insertText}\n`);
 
     return newText;
+  }
+
+  // VR Controllers are very sensitive to the camera near plane. A lot of
+  // scripts with "1 unit= 1cm" rules with a near-plane of 1, cause the VR
+  // controllers to disappear when close to the camera, since VRController
+  // uses "1 unit= 1m" rules.
+  alterCameraNearPlane(scriptText: string) : string {
+    // camera = new THREE.PerspectiveCamera
+    // ( 70, window.innerWidth / window.innerHeight, 1, 1000 );
+    // debugger;
+    let cameraCreationRe = this.extractCameraCreationLineRegEx;
+
+    // let cameraCreationText = scriptText.match(cameraCreationRe)[0]; 
+    let match = scriptText.match(cameraCreationRe); 
+    let cameraCreationText;
+    if (match && match[0]) {
+      cameraCreationText = match[0];
+    }
+    else {
+      // no camera statment found, so just return with original text
+      return scriptText;
+    }
+    console.log(`alterCameraNearPlane: cameraCreationText=${cameraCreationText}`);
+
+    let newText, newScriptText;
+
+    if (cameraCreationText) {
+      // newText = cameraCreationText.replace(/([\d]+)([\s]*,[\s\d]+)$/, "0.1,$2");
+      // let match = cameraCreationText.match(/([\d]+)([\s]*,[\s\d]+)$/);
+      // let match = /([\d]+)([\s]*,[\s\d]+)$/.exec(cameraCreationText);
+      // console.log(`$1=${match[1]}, $2=${match[2]}`);
+      newText = cameraCreationText.replace(/(.*)([\d]+)([\s]*,[\s\d]+\);)$/, "$1" + "0.1" + "$3");
+
+      // now put the new string into the scriptText after original statement
+      if (newText) {
+        newScriptText = scriptText.replace(cameraCreationRe, 
+          `${this.base.jsMarkupAlter}$&\n${newText}`);
+      }
+      
+    }
+
+    // console.log(`alterCameraNearPlane: newText=${newText}`);
+    // console.log(`alterCameraNearPlane: newScriptText=${newScriptText}`);
+
+    return newScriptText;
+
   }
 
   addVrDisplayActivate(scriptText: string, rendererName: string) : string {
@@ -410,9 +522,23 @@ function animate() {
   }
 
 
-  // getAddDollyTemplate() : string {
+  // Parser specific help methods go here.  
+  // These could be put in utils, but since they're really only specific to the
+  // the parser service (i.e. they're not "general"), we place inside the
+  // parser service instead.
 
+  // We abstract out several regexes because some of these may be used in
+  // multiple places, and we want to use a consistent pattern in each case.
+  // extractCameraDeclarationRegEx(scriptText: string) : RegExp {
+  // extractCameraDeclarationRegEx() : RegExp {
+  //   return new RegExp(/var.*camera.*;/,'m');
   // }
-  //TODO add a 'var dolly' statement
+
+  // // extractCameraCreationRegEx(scriptText: string) : RegExp {
+  // extractCameraCreationRegEx() : RegExp {
+  //   return new RegExp(/new THREE.PerspectiveCamera\([^\)]*\);/, 'm');
+  // }
+
+  // end parser helper methods.
 
 }

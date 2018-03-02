@@ -48,6 +48,25 @@ export class UtilsService {
     return `${beginTag}\n${text}\n${endTag}`;
   }
 
+  // alterLine(text: string) : string {
+
+  // }
+
+  // Insert the pre comment before the refNode
+  // CommentPre and CommentPost are like the top and bottom of a 
+  // comment sandwich, respectively.
+  htmlCommentPre(doc: Document, refNode: Node) {
+    let beginTag = this.base.htmlMarkupCommentBegin;
+    let beginNode = doc.createComment(beginTag);
+    this.insertBefore(beginNode, refNode); 
+  }
+
+  htmlCommentPost(doc: Document, refNode: Node) {
+    let endTag = this.base.htmlMarkupCommentEnd;
+    let endNode = doc.createComment(endTag);
+    this.insertAfter(endNode, refNode); 
+  }
+
   // alter the doc directly
   htmlCommentSandwich(doc : Document, refNode: Node) {
     let beginTag = this.base.htmlMarkupCommentBegin;
@@ -69,6 +88,10 @@ export class UtilsService {
     return text.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
   }
 
+  docToString(doc: Document) : string {
+    return new XMLSerializer().serializeToString(doc);
+  }
+
   // }
   // public getJSON(): Observable<any> {
   //   return this.http.get("./file.json")
@@ -82,6 +105,8 @@ export class UtilsService {
 
   insertAfter(newNode, refNode) {
     refNode.parentNode.insertBefore(newNode, refNode.nextSibling);
+    // refNode.parentNode.insertAfter(newNode, refNode);
   }
+
 
 }

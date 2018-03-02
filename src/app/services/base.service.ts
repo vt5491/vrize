@@ -12,9 +12,11 @@ export class BaseService {
   public jsMarkupCommentOutEnd : string;
   public jsMarkupAlterBegin : string;
   public jsMarkupAlterEnd : string;
+  public jsMarkupAlter : string;
 
   public htmlMarkupCommentBegin : string;
   public htmlMarkupCommentEnd : string;
+  public htmlMarkupComment : string;
 
   constructor() { 
     this.appTag = `vrize`;
@@ -26,6 +28,8 @@ export class BaseService {
 
     this.jsMarkupAlterBegin = `//${this.appTag} alter start`;
     this.jsMarkupAlterEnd = `//${this.appTag} alter end`;
+    // single line comment out, with the following line the implied replacement.
+    this.jsMarkupAlter = `//${this.appTag} alter`;
 
     // note: the '<!--' and '-->' that normally bracket html comments are
     // added in the function itself via 'document.createComment'

@@ -54,12 +54,22 @@ renderer.vr.enabled = true;
 `
 // let parser = new DOMParser();
 let base : BaseService;
+let utils : UtilsService;
 let domParser = new DOMParser();
 let basicDoc : Document;
 let basicPostParseDoc : Document;
 // let base = TestBed.get(BaseService);
 
 describe('TransformerService', () => {
+
+  // beforeAll(() => {
+  //   TestBed.configureTestingModule({
+  //     imports: [HttpClientModule],
+  //     providers: [BaseService, UtilsService]
+  //   });
+  //   base = TestBed.get(BaseService);
+  //   utils = TestBed.get(UtilsService);
+  // })
 
   beforeEach(() => {
     TestBed.configureTestingModule({
@@ -68,6 +78,7 @@ describe('TransformerService', () => {
     });
     service = TestBed.get(TransformerService);
     base = TestBed.get(BaseService);
+    utils = TestBed.get(UtilsService);
     basicDoc = domParser.parseFromString(basicHtml, "text/html");
     basicPostParseDoc = domParser.parseFromString(basicPostParseText, "text/html");
   });
@@ -105,7 +116,7 @@ describe('TransformerService', () => {
     expect(resultText).toMatch(new RegExp(pat, 'm'));
   })
 
-  fit ('beautifyJsLibChainHtml produces one lib per line', () => {
+  it ('beautifyJsLibChainHtml produces one lib per line', () => {
     // Since this is not an integration test, and the mainScriptIndex is set by
     // the parser service, we have to manually set this variable ourseleves, with
     // unfortunate side effect that we couple this test to 'basicPostParseDoc' as it's
@@ -113,5 +124,11 @@ describe('TransformerService', () => {
     service.mainScriptIndex = 3;
 
     let resultDoc = service.beautifyMainScript(basicPostParseDoc);
+    // console.log(`newText=${resultDoc.querySelectorAll('script')[service.mainScriptIndex].innerHTML}`);
+
+    // expect to see a js comment with some whitespace before 'renderer.vr.enabled=true'
+    let pat = `^[\\s]{2,}${base.jsMarkupCommentBegin}.*\n[\\s]*renderer.vr.enabled`;
+    let re = new RegExp(pat, 'm');
+    expect(utils.docToString(resultDoc)).toMatch(re);
   })
 });

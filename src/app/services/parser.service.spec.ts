@@ -279,7 +279,7 @@ describe('ParserService', () => {
     expect(scriptIndex).toEqual(0);
   });
 
-  it('addWebVrScript properly adds after the three.js script tag', () => {
+  it('addLibs properly adds after the three.js script tag', () => {
     // normally this method will rely on results from 'findThreeJsScript', but in order
     // to keep this a unit test and not an integration test, we will manually prime
     // the three.js index pos.
@@ -297,10 +297,10 @@ describe('ParserService', () => {
 
     let threeJsScriptIndex = 1;
 
-    let result = service.addWebVrScript(doc, threeJsScriptIndex);
+    let result = service.addLibs(doc, threeJsScriptIndex);
 
     let scriptEls = doc.getElementsByTagName('script');
-    expect(scriptEls.length).toEqual(scriptCnt + 2);
+    expect(scriptEls.length).toEqual(scriptCnt + 4);
 
 
     // verify the three.js is unaffected
@@ -309,6 +309,10 @@ describe('ParserService', () => {
     scriptEls[threeJsScriptIndex + 1].getAttribute('src').match(/js\/vr\/WebVR.js/);
     // and the script tag after that is vrize_kbd.
     scriptEls[threeJsScriptIndex + 2].getAttribute('src').match(/js\/vrize\/vrize_kbd.js/);
+    // and the script tag after that is vrize_controller.
+    scriptEls[threeJsScriptIndex + 3].getAttribute('src').match(/js\/vrize\/vrize_controller.js/);
+    // and the script tag after that is VRController.
+    scriptEls[threeJsScriptIndex + 4].getAttribute('src').match(/js\/vrize\/VRController.js/);
 
     // make sure the text has a lib per line e.g not all placed on one line
     // console.log(`ut.addWebVrScript: doc.innerHTML=${doc.documentElement.innerHTML}`);
@@ -381,7 +385,7 @@ describe('ParserService', () => {
   it('addVrAnimateFn works with a simple script', () => {
     let result = service.addVrAnimateFn(simpleScriptText);
     let vrizeRenderName = `${base.appTag}_render`;
-    // console.log(`ut:addVrAnimateFn: result=${result}`);
+    console.log(`ut:addVrAnimateFn: result=${result}`);
     // debugger;
     let expectedText = service.getVrAnimateFnTemplate();
 
@@ -408,6 +412,11 @@ describe('ParserService', () => {
     // verify 'requestAnimationFrame is commented out
     let rafRe= new RegExp(/\/\/\s*requestAnimationFrame/);
     expect(result).toMatch(rafRe);
+
+    // verify statement 'THREE.VRController.update();' has been added
+    re = new RegExp(`${base.jsMarkupCommentBegin}\\n.*THREE.VRController.update.*\\n.*${base.jsMarkupCommentEnd}`);
+    // console.log(`newText`);
+    expect(result).toMatch(re, 'm');
   })
 
   it('addVrAnimateFn works on a real script', () => {
@@ -518,5 +527,18 @@ camera.position.set( 30, 40, 100 );
     expect(newScript).toMatch(/event\.display\.requestPresent\(\[\{ source: testRenderer.domElement /, 'm');
 
   })
+
+  xit('alterCameraNearPlane changes nearplane parm to 0.1', () => {
+    let newScriptText = service.alterCameraNearPlane(simpleScriptText);
+
+    // original is commented out
+    let pat1 = new RegExp(`${base.jsMarkupAlter}.*camera`);
+    expect(newScriptText).toMatch(pat1, 'm');
+    // expect(newScriptText).toMatch(/0\.1, 1000 \)/);
+    // and new has '0.1' in the third parameter
+    let pat2 = new RegExp(`camera = new THREE\.PerspectiveCamera.*0.1,`);
+    expect(newScriptText).toMatch(pat2, 'm');
+  })
+
 
 });

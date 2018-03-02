@@ -48,6 +48,7 @@ export class TransformerService {
     newText = this.parser.addDolly(newText);
     newText = this.parser.addDollyToScene(newText);
     newText = this.parser.addCameraToDolly(newText);
+    newText = this.parser.alterCameraNearPlane(newText);
 
     // add the 'vrdisplayactivate' handler (so vr-mode is transitive)
     // Note: this is only needed if you don't have a customized 'examples/js/vr/WebVR.js'.
@@ -64,7 +65,8 @@ export class TransformerService {
   liftLibs(doc) : number {
     let threeJsIndex = this.parser.findThreeJsScript(doc);
 
-    this.parser.addWebVrScript(doc, threeJsIndex);
+    // this.parser.addWebVrScript(doc, threeJsIndex);
+    this.parser.addLibs(doc, threeJsIndex);
 
     return threeJsIndex;
   }
@@ -103,14 +105,18 @@ export class TransformerService {
   // use beautify to clean up the main script.  We can use the doc objecct
   // for this.
   beautifyMainScript(doc : Document) {
-    console.log(`beautifyMainScript: mainScriptInex=${this.mainScriptIndex}`);
+    // console.log(`beautifyMainScript: mainScriptInex=${this.mainScriptIndex}`);
 
     let mainScriptText = doc.querySelectorAll('script')[this.mainScriptIndex].innerHTML;
 
-    console.log(`beautifyMainScript: mainsScriptText=${mainScriptText}`);
+    // console.log(`beautifyMainScript: mainsScriptText=${mainScriptText}`);
 
     let newText = beautify.js(mainScriptText);
-    console.log(`beautifyMainScript: newText=${newText}`);
+    // console.log(`beautifyMainScript: newText=${newText}`);
+
+    doc.querySelectorAll('script')[this.mainScriptIndex].innerHTML = newText;
+
+    return doc;
 
   }
 
